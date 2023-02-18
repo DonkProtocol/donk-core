@@ -1,0 +1,21 @@
+{
+  "abi": [],
+  "evm": {
+    "bytecode": {
+      "linkReferences": {},
+      "object": "60566023600b82828239805160001a607314601657fe5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea2646970667358221220021884b0c0045bba5400ad471d7ccbfd893e53c99de28b6276c451f76c6a628a64736f6c634300060c0033",
+      "opcodes": "PUSH1 0x56 PUSH1 0x23 PUSH1 0xB DUP3 DUP3 DUP3 CODECOPY DUP1 MLOAD PUSH1 0x0 BYTE PUSH1 0x73 EQ PUSH1 0x16 JUMPI INVALID JUMPDEST ADDRESS PUSH1 0x0 MSTORE PUSH1 0x73 DUP2 MSTORE8 DUP3 DUP2 RETURN INVALID PUSH20 0x0 ADDRESS EQ PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 MUL XOR DUP5 0xB0 0xC0 DIV JUMPDEST 0xBA SLOAD STOP 0xAD SELFBALANCE SAR PUSH29 0xCBFD893E53C99DE28B6276C451F76C6A628A64736F6C634300060C0033 ",
+      "sourceMap": "116:522:8:-:0;;;;;;;;;;;;;;;;;;;;;;;;;"
+    },
+    "deployedBytecode": {
+      "immutableReferences": {},
+      "linkReferences": {},
+      "object": "73000000000000000000000000000000000000000030146080604052600080fdfea2646970667358221220021884b0c0045bba5400ad471d7ccbfd893e53c99de28b6276c451f76c6a628a64736f6c634300060c0033",
+      "opcodes": "PUSH20 0x0 ADDRESS EQ PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 MUL XOR DUP5 0xB0 0xC0 DIV JUMPDEST 0xBA SLOAD STOP 0xAD SELFBALANCE SAR PUSH29 0xCBFD893E53C99DE28B6276C451F76C6A628A64736F6C634300060C0033 ",
+      "sourceMap": "116:522:8:-:0;;;;;;;;"
+    }
+  },
+  "metadata": "{\"compiler\":{\"version\":\"0.6.12+commit.27d51765\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/libraries/Math.sol\":\"Math\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":999999},\"remappings\":[]},\"sources\":{\"contracts/libraries/Math.sol\":{\"keccak256\":\"0x3e0a5520297ed1dc711407fb10e309db409fc8143e19a0a7751aa064bb99dfa1\",\"license\":\"GPL-3.0\",\"urls\":[\"bzz-raw://5d44428171de5cd02c255aebd53d88e78cfee0b877bc1a13bbafa6e83eb0597d\",\"dweb:/ipfs/QmXLVkrxEpA57vgP2CYh26PPGqaFy8C5peKKSdLobfCv31\"]}},\"version\":1}",
+  "interface": [],
+  "bytecode": "60566023600b82828239805160001a607314601657fe5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea2646970667358221220021884b0c0045bba5400ad471d7ccbfd893e53c99de28b6276c451f76c6a628a64736f6c634300060c0033"
+}
