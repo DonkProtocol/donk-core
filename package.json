@@ -1,19 +1,17 @@
 {
-  "name": "@oneverseswap/core",
-  "description": "🎛 Core contracts for the Oneverse exchanges",
-  "version": "1.0.3",
-  "homepage": "https://oneverse.one/",
+  "name": "@donk/core",
+  "description": "🎛 Core contracts for the Donk exchanges",
+  "version": "1.0.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/willcordeiro/oneverseswap-core.git"
+    "url": "git+https://github.com/DonkSolana/donk-core.git"
   },
   "keywords": [
     "uniswap",
     "ethereum",
     "v2",
     "core",
-    "uniswap-v2",
-    "venom"
+    "uniswap-v2"
   ],
   "files": [
     "contracts",
