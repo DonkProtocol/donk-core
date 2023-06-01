@@ -7,10 +7,10 @@ import './libraries/SafeMath.sol';
 contract UniswapV2ERC20 {
     using SafeMathUniswap for uint;
 
-    string public constant name = 'OV LP Token';
-    string public constant symbol = 'OV-LP';
+    string public constant name = 'DONK LP Token';
+    string public constant symbol = 'DONK-LP';
     uint8 public constant decimals = 18;
-    uint  public totalSupply;
+    uint public totalSupply;
     mapping(address => uint) public balanceOf;
     mapping(address => mapping(address => uint)) public allowance;
 

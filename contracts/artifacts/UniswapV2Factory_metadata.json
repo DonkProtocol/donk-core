@@ -234,11 +234,11 @@
 	},
 	"sources": {
 		"UniswapV2ERC20.sol": {
-			"keccak256": "0xda2a1a3fd1c56a1b77846ed1c154ad79d6ddd42a5c80b2a7f12adec13b5045fd",
+			"keccak256": "0x642731266a250967fe32f7f25278b1bc5ed1a8b3a71bf48e220442b7eb51367e",
 			"license": "GPL-3.0",
 			"urls": [
-				"bzz-raw://266ef887bb39b99967c02b2b31234c0ccd23f138de124a12b330f42ff2d8708c",
-				"dweb:/ipfs/QmdMio1Jrovb5DNJNzcuZyVidwgZhNuAfLRhhQkeE9546M"
+				"bzz-raw://b7a1c3b3d4021e09d7926360efa64911b00f4c9213dc4bdebfc8a94af3452bf1",
+				"dweb:/ipfs/QmbgNBzE1bCte8gUdFHVwwhnV8oKr6gmi7b4B8zUKcSf9R"
 			]
 		},
 		"UniswapV2Factory.sol": {
@@ -250,11 +250,11 @@
 			]
 		},
 		"UniswapV2Pair.sol": {
-			"keccak256": "0x02bcc80463397ed1d5482679a0c77a8e9ed92c3962336d0bbab4713c29ce9ac0",
+			"keccak256": "0x15097ef2a4fcaa3c5f5a9e4710667745144a10323c96601750eb28ccb329ecd2",
 			"license": "GPL-3.0",
 			"urls": [
-				"bzz-raw://2bf83a2f9b526a34b0c7da65f77b2840b7afe8b0b6b127ab7bac4005382b4d1e",
-				"dweb:/ipfs/QmY5MYiGJ4aBadx3nhLEZeibwNiCCdeUAntveuSAPiFM5Y"
+				"bzz-raw://a4ee48e1dcc09450ce4aec942d9c9ab0bfc9e4d7d7cf9ebc2bb525211a92d32b",
+				"dweb:/ipfs/QmPwMb1rZvdy74BhkzGVdZ6ohXvjU6gA5VRNH9bHW2ZSgS"
 			]
 		},
 		"interfaces/IERC20.sol": {

@@ -10,19 +10,19 @@ import './interfaces/IUniswapV2Factory.sol';
 import './interfaces/IUniswapV2Callee.sol';
 
 contract UniswapV2Pair is UniswapV2ERC20 {
-    using SafeMathUniswap  for uint;
+    using SafeMathUniswap for uint;
     using UQ112x112 for uint224;
 
-    uint public constant MINIMUM_LIQUIDITY = 10**3;
+    uint public constant MINIMUM_LIQUIDITY = 10 ** 3;
     bytes4 private constant SELECTOR = bytes4(keccak256(bytes('transfer(address,uint256)')));
 
     address public factory;
     address public token0;
     address public token1;
 
-    uint112 private reserve0;           // uses single storage slot, accessible via getReserves
-    uint112 private reserve1;           // uses single storage slot, accessible via getReserves
-    uint32  private blockTimestampLast; // uses single storage slot, accessible via getReserves
+    uint112 private reserve0; // uses single storage slot, accessible via getReserves
+    uint112 private reserve1; // uses single storage slot, accessible via getReserves
+    uint32 private blockTimestampLast; // uses single storage slot, accessible via getReserves
 
     uint public price0CumulativeLast;
     uint public price1CumulativeLast;
@@ -73,7 +73,7 @@ contract UniswapV2Pair is UniswapV2ERC20 {
     // update reserves and, on the first call per block, price accumulators
     function _update(uint balance0, uint balance1, uint112 _reserve0, uint112 _reserve1) private {
         require(balance0 <= uint112(-1) && balance1 <= uint112(-1), 'UniswapV2: OVERFLOW');
-        uint32 blockTimestamp = uint32(block.timestamp % 2**32);
+        uint32 blockTimestamp = uint32(block.timestamp % 2 ** 32);
         uint32 timeElapsed = blockTimestamp - blockTimestampLast; // overflow is desired
         if (timeElapsed > 0 && _reserve0 != 0 && _reserve1 != 0) {
             // * never overflows, and + overflow is desired
@@ -86,11 +86,11 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         emit Sync(reserve0, reserve1);
     }
 
-    // if fee is on, mint liquidity equivalent to 1/6th of the growth in sqrt(k)
     function _mintFee(uint112 _reserve0, uint112 _reserve1) private returns (bool feeOn) {
         address feeTo = IUniswapV2Factory(factory).feeTo();
+        uint256 fees = IUniswapV2Factory(factory).adminFee();
         feeOn = feeTo != address(0);
-        uint _kLast = kLast; // gas savings
+        uint _kLast = kLast; // economia de gás
         if (feeOn) {
             if (_kLast != 0) {
                 uint rootK = Math.sqrt(uint(_reserve0).mul(_reserve1));
@@ -99,7 +99,12 @@ contract UniswapV2Pair is UniswapV2ERC20 {
                     uint numerator = totalSupply.mul(rootK.sub(rootKLast));
                     uint denominator = rootK.mul(2).add(rootKLast);
                     uint liquidity = numerator / denominator;
-                    if (liquidity > 0) _mint(feeTo, liquidity);
+                    if (liquidity > 0) {
+                        uint feeAmount = liquidity.mul(fees) / 10000; // 0,17%
+                        uint liquidityAmount = liquidity.sub(feeAmount);
+                        _mint(feeTo, feeAmount);
+                        _mint(msg.sender, liquidityAmount);
+                    }
                 }
             }
         } else if (_kLast != 0) {
@@ -109,7 +114,7 @@ contract UniswapV2Pair is UniswapV2ERC20 {
 
     // this low-level function should be called from a contract which performs important safety checks
     function mint(address to) external lock returns (uint liquidity) {
-        (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings
+        (uint112 _reserve0, uint112 _reserve1, ) = getReserves(); // gas savings
         uint balance0 = IERC20Uniswap(token0).balanceOf(address(this));
         uint balance1 = IERC20Uniswap(token1).balanceOf(address(this));
         uint amount0 = balance0.sub(_reserve0);
@@ -119,7 +124,7 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         uint _totalSupply = totalSupply; // gas savings, must be defined here since totalSupply can update in _mintFee
         if (_totalSupply == 0) {
             liquidity = Math.sqrt(amount0.mul(amount1)).sub(MINIMUM_LIQUIDITY);
-           _mint(address(0), MINIMUM_LIQUIDITY); // permanently lock the first MINIMUM_LIQUIDITY tokens
+            _mint(address(0), MINIMUM_LIQUIDITY); // permanently lock the first MINIMUM_LIQUIDITY tokens
         } else {
             liquidity = Math.min(amount0.mul(_totalSupply) / _reserve0, amount1.mul(_totalSupply) / _reserve1);
         }
@@ -131,56 +136,87 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         emit Mint(msg.sender, amount0, amount1);
     }
 
-    // this low-level function should be called from a contract which performs important safety checks
     function burn(address to) external lock returns (uint amount0, uint amount1) {
-        (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings
-        address _token0 = token0;                                // gas savings
-        address _token1 = token1;                                // gas savings
-        uint balance0 = IERC20Uniswap(_token0).balanceOf(address(this));
-        uint balance1 = IERC20Uniswap(_token1).balanceOf(address(this));
-        uint liquidity = balanceOf[address(this)];
-
+        (uint liquidity, uint balance0, uint balance1, uint112 _reserve0, uint112 _reserve1) = getBurnInputs();
+        (uint feeAmount0, uint feeAmount1) = calculateFeeAmounts(balance0, balance1);
+        address _feeTo = IUniswapV2Factory(factory).feeTo();
         bool feeOn = _mintFee(_reserve0, _reserve1);
+
         uint _totalSupply = totalSupply; // gas savings, must be defined here since totalSupply can update in _mintFee
         amount0 = liquidity.mul(balance0) / _totalSupply; // using balances ensures pro-rata distribution
         amount1 = liquidity.mul(balance1) / _totalSupply; // using balances ensures pro-rata distribution
         require(amount0 > 0 && amount1 > 0, 'UniswapV2: INSUFFICIENT_LIQUIDITY_BURNED');
-        _burn(address(this), liquidity);
-        _safeTransfer(_token0, to, amount0);
-        _safeTransfer(_token1, to, amount1);
-        balance0 = IERC20Uniswap(_token0).balanceOf(address(this));
-        balance1 = IERC20Uniswap(_token1).balanceOf(address(this));
+
+        // Calculate liquidity gains
+        amount0 = liquidity.sub(feeAmount0);
+        amount1 = liquidity.sub(feeAmount1);
+
+        // Transfer fee amounts to feeTo address
+        _safeTransfer(token0, _feeTo, feeAmount0);
+        _safeTransfer(token1, _feeTo, feeAmount1);
+
+        // Transfer liquidity gains to liquidity provider
+        _safeTransfer(token0, to, amount0);
+        _safeTransfer(token1, to, amount1);
 
         _update(balance0, balance1, _reserve0, _reserve1);
-        if (feeOn) kLast = uint(reserve0).mul(reserve1); // reserve0 and reserve1 are up-to-date
+        if (feeOn) kLast = uint(_reserve0).mul(_reserve1); // _reserve0 and _reserve1 are up-to-date
+
         emit Burn(msg.sender, amount0, amount1, to);
+    }
+
+    function getBurnInputs()
+        internal
+        view
+        returns (uint liquidity, uint balance0, uint balance1, uint112 _reserve0, uint112 _reserve1)
+    {
+        (_reserve0, _reserve1, ) = getReserves(); // gas savings
+        address _token0 = token0; // gas savings
+        address _token1 = token1; // gas savings
+        balance0 = IERC20Uniswap(_token0).balanceOf(address(this));
+        balance1 = IERC20Uniswap(_token1).balanceOf(address(this));
+        liquidity = balanceOf[address(this)];
+    }
+
+    function calculateFeeAmounts(
+        uint balance0,
+        uint balance1
+    ) internal view returns (uint feeAmount0, uint feeAmount1) {
+        uint fees = IUniswapV2Factory(factory).adminFee();
+        feeAmount0 = balance0.mul(fees) / 10000; // 0.17% of balance0
+        feeAmount1 = balance1.mul(fees) / 10000; // 0.17% of balance1
     }
 
     // this low-level function should be called from a contract which performs important safety checks
     function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external lock {
         require(amount0Out > 0 || amount1Out > 0, 'UniswapV2: INSUFFICIENT_OUTPUT_AMOUNT');
-        (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings
+        (uint112 _reserve0, uint112 _reserve1, ) = getReserves(); // gas savings
         require(amount0Out < _reserve0 && amount1Out < _reserve1, 'UniswapV2: INSUFFICIENT_LIQUIDITY');
 
         uint balance0;
         uint balance1;
-        { // scope for _token{0,1}, avoids stack too deep errors
-        address _token0 = token0;
-        address _token1 = token1;
-        require(to != _token0 && to != _token1, 'UniswapV2: INVALID_TO');
-        if (amount0Out > 0) _safeTransfer(_token0, to, amount0Out); // optimistically transfer tokens
-        if (amount1Out > 0) _safeTransfer(_token1, to, amount1Out); // optimistically transfer tokens
-        if (data.length > 0) IUniswapV2Callee(to).uniswapV2Call(msg.sender, amount0Out, amount1Out, data);
-        balance0 = IERC20Uniswap(_token0).balanceOf(address(this));
-        balance1 = IERC20Uniswap(_token1).balanceOf(address(this));
+        {
+            // scope for _token{0,1}, avoids stack too deep errors
+            address _token0 = token0;
+            address _token1 = token1;
+            require(to != _token0 && to != _token1, 'UniswapV2: INVALID_TO');
+            if (amount0Out > 0) _safeTransfer(_token0, to, amount0Out); // optimistically transfer tokens
+            if (amount1Out > 0) _safeTransfer(_token1, to, amount1Out); // optimistically transfer tokens
+            if (data.length > 0) IUniswapV2Callee(to).uniswapV2Call(msg.sender, amount0Out, amount1Out, data);
+            balance0 = IERC20Uniswap(_token0).balanceOf(address(this));
+            balance1 = IERC20Uniswap(_token1).balanceOf(address(this));
         }
         uint amount0In = balance0 > _reserve0 - amount0Out ? balance0 - (_reserve0 - amount0Out) : 0;
         uint amount1In = balance1 > _reserve1 - amount1Out ? balance1 - (_reserve1 - amount1Out) : 0;
         require(amount0In > 0 || amount1In > 0, 'UniswapV2: INSUFFICIENT_INPUT_AMOUNT');
-        { // scope for reserve{0,1}Adjusted, avoids stack too deep errors
-        uint balance0Adjusted = balance0.mul(1000).sub(amount0In.mul(3));
-        uint balance1Adjusted = balance1.mul(1000).sub(amount1In.mul(3));
-        require(balance0Adjusted.mul(balance1Adjusted) >= uint(_reserve0).mul(_reserve1).mul(1000**2), 'UniswapV2: K');
+        {
+            // scope for reserve{0,1}Adjusted, avoids stack too deep errors
+            uint balance0Adjusted = balance0.mul(1000).sub(amount0In.mul(3));
+            uint balance1Adjusted = balance1.mul(1000).sub(amount1In.mul(3));
+            require(
+                balance0Adjusted.mul(balance1Adjusted) >= uint(_reserve0).mul(_reserve1).mul(1000 ** 2),
+                'UniswapV2: K'
+            );
         }
 
         _update(balance0, balance1, _reserve0, _reserve1);
@@ -197,6 +233,11 @@ contract UniswapV2Pair is UniswapV2ERC20 {
 
     // force reserves to match balances
     function sync() external lock {
-        _update(IERC20Uniswap(token0).balanceOf(address(this)), IERC20Uniswap(token1).balanceOf(address(this)), reserve0, reserve1);
+        _update(
+            IERC20Uniswap(token0).balanceOf(address(this)),
+            IERC20Uniswap(token1).balanceOf(address(this)),
+            reserve0,
+            reserve1
+        );
     }
 }
