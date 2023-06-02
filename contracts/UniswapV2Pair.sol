@@ -145,9 +145,9 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         address _feeToSetter = IUniswapV2Factory(factory).feeToSetter();
         bool feeOn = _mintFee(_reserve0, _reserve1);
 
-        uint _totalSupply = totalSupply; // gas savings, must be defined here since totalSupply can update in _mintFee
-        amount0 = liquidity.mul(balance0) / _totalSupply; // using balances ensures pro-rata distribution
-        amount1 = liquidity.mul(balance1) / _totalSupply; // using balances ensures pro-rata distribution
+        // gas savings, must be defined here since totalSupply can update in _mintFee
+        amount0 = liquidity.mul(balance0) / totalSupply; // using balances ensures pro-rata distribution
+        amount1 = liquidity.mul(balance1) / totalSupply; // using balances ensures pro-rata distribution
         require(amount0 > 0 && amount1 > 0, 'UniswapV2: INSUFFICIENT_LIQUIDITY_BURNED');
         _burn(address(this), liquidity);
 
@@ -155,13 +155,9 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         _safeTransfer(token0, _feeToSetter, feeAmount0);
         _safeTransfer(token1, _feeToSetter, feeAmount1);
 
-        //applying fees
-        uint amount0WithFees = amount0.subSafeMath(feeAmount0);
-        uint amount1WithFees = amount1.subSafeMath(feeAmount1);
-
         // Transfer liquidity gains to liquidity provider
-        _safeTransfer(token0, to, amount0WithFees);
-        _safeTransfer(token1, to, amount1WithFees);
+        _safeTransfer(token0, to, amount0.subSafeMath(feeAmount0));
+        _safeTransfer(token1, to, amount1.subSafeMath(feeAmount1));
 
         _update(balance0, balance1, _reserve0, _reserve1);
         if (feeOn) kLast = uint(_reserve0).mul(_reserve1); // _reserve0 and _reserve1 are up-to-date
