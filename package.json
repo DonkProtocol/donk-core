@@ -1,7 +1,7 @@
 {
   "name": "@donkswap/core",
   "description": "🎛 Core contracts for the Donk exchanges",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/DonkSolana/donk-core.git"
