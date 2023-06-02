@@ -103,8 +103,8 @@ contract UniswapV2Pair is UniswapV2ERC20 {
                     uint denominator = rootK.mul(2).add(rootKLast);
                     uint liquidity = numerator / denominator;
                     if (liquidity > 0) {
-                        uint feeAmount = liquidity.mul(fees) / 10000; // 0,17%
-                        uint liquidityAmount = liquidity.sub(feeAmount);
+                        uint feeAmount = liquidity.mulSafeMath(fees) / 10000; // 0,17%
+                        uint liquidityAmount = liquidity.subSafeMath(feeAmount);
                         _mint(feeTo, feeAmount);
                         _mint(msg.sender, liquidityAmount);
                     }
@@ -151,8 +151,8 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         require(amount0 > 0 && amount1 > 0, 'UniswapV2: INSUFFICIENT_LIQUIDITY_BURNED');
 
         // Calculate liquidity gains
-        amount0 = liquidity.sub(feeAmount0);
-        amount1 = liquidity.sub(feeAmount1);
+        amount0 = liquidity.subSafeMath(feeAmount0);
+        amount1 = liquidity.subSafeMath(feeAmount1);
 
         // Transfer fee amounts to feeTo address
         _safeTransfer(token0, _feeTo, feeAmount0);
@@ -169,7 +169,7 @@ contract UniswapV2Pair is UniswapV2ERC20 {
     }
 
     function getBurnInputs()
-        internal
+        public
         view
         returns (uint liquidity, uint balance0, uint balance1, uint112 _reserve0, uint112 _reserve1)
     {
@@ -181,13 +181,10 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         liquidity = balanceOf[address(this)];
     }
 
-    function calculateFeeAmounts(
-        uint balance0,
-        uint balance1
-    ) internal view returns (uint feeAmount0, uint feeAmount1) {
+    function calculateFeeAmounts(uint balance0, uint balance1) public view returns (uint feeAmount0, uint feeAmount1) {
         uint fees = IUniswapV2Factory(factory).adminFee();
-        feeAmount0 = balance0.mul(fees) / 10000; // 0.17% of balance0
-        feeAmount1 = balance1.mul(fees) / 10000; // 0.17% of balance1
+        feeAmount0 = balance0.mul(fees).mulSafeMath(17).div(10000); // 0.17% of balance0
+        feeAmount1 = balance1.mul(fees).mulSafeMath(17).div(10000); // 0.17% of balance1
     }
 
     // this low-level function should be called from a contract which performs important safety checks
