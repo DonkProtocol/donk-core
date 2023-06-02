@@ -11,6 +11,11 @@
 						"internalType": "address",
 						"name": "_feeToSetter",
 						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_adminFee",
+						"type": "uint256"
 					}
 				],
 				"stateMutability": "nonpayable",
@@ -55,6 +60,19 @@
 						"internalType": "bytes32",
 						"name": "",
 						"type": "bytes32"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "adminFee",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
 					}
 				],
 				"stateMutability": "view",
@@ -143,6 +161,19 @@
 				"type": "function"
 			},
 			{
+				"inputs": [],
+				"name": "getAdminFee",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
 				"inputs": [
 					{
 						"internalType": "address",
@@ -177,6 +208,19 @@
 					}
 				],
 				"stateMutability": "pure",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_fee",
+						"type": "uint256"
+					}
+				],
+				"name": "setAdminFee",
+				"outputs": [],
+				"stateMutability": "nonpayable",
 				"type": "function"
 			},
 			{
@@ -242,19 +286,19 @@
 			]
 		},
 		"UniswapV2Factory.sol": {
-			"keccak256": "0x3c71cec41228f1d6789a397eca8dfde6b71d22e6d7079fd51c905f54627fbc08",
+			"keccak256": "0x2071b15e863887e8ab08cb18b3e580a7fdacdf3572ff08c65def9ab85b1dbe3c",
 			"license": "GPL-3.0",
 			"urls": [
-				"bzz-raw://522f56c4d6f382a757a6283c436a40dd23e0be5a49e175ad675fd50fc625e0bc",
-				"dweb:/ipfs/QmNfjuk6fWjjfvPq82zYYEFTd9nVUmvnmx2SkScXPfrnQM"
+				"bzz-raw://ff4647cea5302ee8b79fdaabfd68832faa2f025e191ff9017643607dbd4d2c42",
+				"dweb:/ipfs/QmZyH3bTwq8BL9bm2TkreuD47n8HVnynjwRYh4ZiuA6XkV"
 			]
 		},
 		"UniswapV2Pair.sol": {
-			"keccak256": "0x15097ef2a4fcaa3c5f5a9e4710667745144a10323c96601750eb28ccb329ecd2",
+			"keccak256": "0xd30c08044ef4f20477ca01b9802cbd1e22f99975780a746d643d87efec1faa6c",
 			"license": "GPL-3.0",
 			"urls": [
-				"bzz-raw://a4ee48e1dcc09450ce4aec942d9c9ab0bfc9e4d7d7cf9ebc2bb525211a92d32b",
-				"dweb:/ipfs/QmPwMb1rZvdy74BhkzGVdZ6ohXvjU6gA5VRNH9bHW2ZSgS"
+				"bzz-raw://abfa423a38b4d942480ec2e63b4409cc6d0b9c5f363195fb0def32b4b77fa905",
+				"dweb:/ipfs/QmdjEjYt33HuQAFzfxWcovCxcxuCRd2mdKVGCqoWZhekkE"
 			]
 		},
 		"interfaces/IERC20.sol": {
@@ -274,11 +318,11 @@
 			]
 		},
 		"interfaces/IUniswapV2Factory.sol": {
-			"keccak256": "0xd98dc884ed987a17193a498f13a5fcfc5388f94609de025df008c8755c214c9c",
+			"keccak256": "0xcba5ce40eebd9b30b768f178acf1d76f9352db344c0a07cffb1269b521056893",
 			"license": "GPL-3.0",
 			"urls": [
-				"bzz-raw://9a03e115f7fb1cba647abfd06341043738fca35d20c69f8d6fcbb57461c93c8e",
-				"dweb:/ipfs/QmUZ6XDDyDvdf3UiePa54cG8M9rk8VkgCfKVqCgFKX222k"
+				"bzz-raw://cc103ec954ea772930a5df65140108557118e9e8aead52f50a28fc1e6984edb8",
+				"dweb:/ipfs/QmY57RxTFEUowyExHvoQArVmQYkDHJLp5i9iammXNZRYug"
 			]
 		},
 		"libraries/Math.sol": {
