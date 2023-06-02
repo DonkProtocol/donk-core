@@ -142,7 +142,7 @@ contract UniswapV2Pair is UniswapV2ERC20 {
     function burn(address to) external lock returns (uint amount0, uint amount1) {
         (uint liquidity, uint balance0, uint balance1, uint112 _reserve0, uint112 _reserve1) = getBurnInputs();
         (uint feeAmount0, uint feeAmount1) = calculateFeeAmounts(balance0, balance1);
-        address _feeTo = IUniswapV2Factory(factory).feeTo();
+        address _feeToSetter = IUniswapV2Factory(factory).feeToSetter();
         bool feeOn = _mintFee(_reserve0, _reserve1);
 
         uint _totalSupply = totalSupply; // gas savings, must be defined here since totalSupply can update in _mintFee
@@ -155,8 +155,8 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         amount1 = liquidity.subSafeMath(feeAmount1);
 
         // Transfer fee amounts to feeTo address
-        _safeTransfer(token0, _feeTo, feeAmount0);
-        _safeTransfer(token1, _feeTo, feeAmount1);
+        _safeTransfer(token0, _feeToSetter, feeAmount0);
+        _safeTransfer(token1, _feeToSetter, feeAmount1);
 
         // Transfer liquidity gains to liquidity provider
         _safeTransfer(token0, to, amount0);
