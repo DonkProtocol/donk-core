@@ -95,14 +95,9 @@ describe('UniswapV2Pair', () => {
     const expectedValue = new BigNumber('0x01340530ce06c000').toString()
     expect(burnReturne.feeAmount0.toString()).to.eq(expectedValue)
     expect(burnReturne.feeAmount1.toString()).to.eq(expectedValue)
-    // Exiba o retorno da função
-    console.log(burnReturn.balance0, '1', burnReturn.balance1, '2', burnReturne)
 
-    const burnTransaction = await pair.burn(wallet.address, overrides)
-    // const transactionReceipt = await burnTransaction.wait()
-    // const returnData = transactionReceipt
+    console.log(burnReturn.balance0, '0', burnReturn.balance1, '1')
 
-    // console.log(returnData) // Valor de retorno da transação
     /*
     await expect())
       .to.emit(pair, 'Transfer')

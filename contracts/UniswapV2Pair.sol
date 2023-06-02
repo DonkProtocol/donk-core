@@ -46,7 +46,7 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         (bool success, bytes memory data) = token.call(abi.encodeWithSelector(SELECTOR, to, value));
         require(
             success && (data.length == 0 || abi.decode(data, (bool))),
-            string(abi.encodePacked('UniswapV2: TRANSFER_FAILED. Token: ', token, ', to: ', to, ', value: ', value))
+            string(abi.encodePacked('UniswapV2: TRANSFER_FAILED'))
         );
     }
 
@@ -149,18 +149,19 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         amount0 = liquidity.mul(balance0) / _totalSupply; // using balances ensures pro-rata distribution
         amount1 = liquidity.mul(balance1) / _totalSupply; // using balances ensures pro-rata distribution
         require(amount0 > 0 && amount1 > 0, 'UniswapV2: INSUFFICIENT_LIQUIDITY_BURNED');
-
-        // Calculate liquidity gains
-        amount0 = liquidity.subSafeMath(feeAmount0);
-        amount1 = liquidity.subSafeMath(feeAmount1);
+        _burn(address(this), liquidity);
 
         // Transfer fee amounts to feeTo address
         _safeTransfer(token0, _feeToSetter, feeAmount0);
         _safeTransfer(token1, _feeToSetter, feeAmount1);
 
+        //applying fees
+        uint amount0WithFees = amount0.subSafeMath(feeAmount0);
+        uint amount1WithFees = amount1.subSafeMath(feeAmount1);
+
         // Transfer liquidity gains to liquidity provider
-        _safeTransfer(token0, to, amount0);
-        _safeTransfer(token1, to, amount1);
+        _safeTransfer(token0, to, amount0WithFees);
+        _safeTransfer(token1, to, amount1WithFees);
 
         _update(balance0, balance1, _reserve0, _reserve1);
         if (feeOn) kLast = uint(_reserve0).mul(_reserve1); // _reserve0 and _reserve1 are up-to-date
