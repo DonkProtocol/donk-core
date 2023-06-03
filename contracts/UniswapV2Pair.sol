@@ -246,14 +246,14 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         uint providerFee = IUniswapV2Factory(factory).providerFee();
         uint fees = IUniswapV2Factory(factory).adminFee();
         if (amount1Out > 0) {
-            uint feeToken0 = amount0Out.mulSafeMath(providerFee).div(100);
-            uint adminFee0 = amount0Out.mulSafeMath(fees).div(100);
+            uint feeToken0 = amount0Out.mulSafeMath(providerFee).div(1000);
+            uint adminFee0 = amount0Out.mulSafeMath(fees).div(1000);
 
             accumulatedFeeAdmin0[address(this)] = accumulatedFeeAdmin0[address(this)].addSafeMath(adminFee0);
             accumulatedFeeToken0[address(this)] = accumulatedFeeToken0[address(this)].addSafeMath(feeToken0);
         } else if (amount0Out > 0) {
-            uint feeToken1 = amount1Out.mulSafeMath(providerFee).div(100);
-            uint adminFee1 = amount1Out.mulSafeMath(fees).div(100);
+            uint feeToken1 = amount1Out.mulSafeMath(providerFee).div(1000);
+            uint adminFee1 = amount1Out.mulSafeMath(fees).div(1000);
 
             accumulatedFeeAdmin1[address(this)] = accumulatedFeeAdmin1[address(this)].addSafeMath(adminFee1);
             accumulatedFeeToken1[address(this)] = accumulatedFeeToken1[address(this)].addSafeMath(feeToken1);
