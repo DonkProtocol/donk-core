@@ -9,6 +9,7 @@ contract UniswapV2Factory is IUniswapV2Factory {
     address public override feeTo;
     address public override feeToSetter;
     uint256 public override adminFee;
+    uint256 public override swapFee;
 
     bytes32 public constant INIT_CODE_HASH = keccak256(abi.encodePacked(type(UniswapV2Pair).creationCode));
 
@@ -17,9 +18,11 @@ contract UniswapV2Factory is IUniswapV2Factory {
 
     event PairCreated(address indexed token0, address indexed token1, address pair, uint);
 
-    constructor(address _feeToSetter, uint256 _adminFee) public {
+    // 0.4% fee = 4  0.17% fee = 17 mutiply the wanted fee by 10
+    constructor(address _feeToSetter, uint256 _adminFee, uint256 _swapFee) public {
         feeToSetter = _feeToSetter;
         adminFee = _adminFee;
+        swapFee = _swapFee;
     }
 
     function allPairsLength() external view override returns (uint) {
@@ -64,5 +67,14 @@ contract UniswapV2Factory is IUniswapV2Factory {
     function setAdminFee(uint256 _fee) external {
         require(msg.sender == feeToSetter, 'UniswapV2: FORBIDDEN');
         adminFee = _fee;
+    }
+
+    function getSwapFee() external view returns (uint256) {
+        return swapFee;
+    }
+
+    function setSwapFee(uint256 _fee) external {
+        require(msg.sender == feeToSetter, 'UniswapV2: FORBIDDEN');
+        swapFee = _fee;
     }
 }

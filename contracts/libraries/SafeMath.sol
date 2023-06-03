@@ -39,4 +39,10 @@ library SafeMathUniswap {
         require(b <= a, 'SafeMath: subtraction overflow');
         return a - b;
     }
+
+    function addSafeMath(uint256 a, uint256 b) internal pure returns (uint256) {
+        uint256 c = a + b;
+        require(c >= a, 'SafeMath: addition overflow');
+        return c;
+    }
 }
