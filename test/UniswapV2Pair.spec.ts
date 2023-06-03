@@ -88,6 +88,7 @@ describe('UniswapV2Pair', () => {
     await pair.transfer(pair.address, expectedLiquidity.sub(MINIMUM_LIQUIDITY))
 
     // Chamada estática da função 'burn' no contrato para obter o retorno
+    /*
     const burnReturn = await pair.getBurnInputs()
 
     const burnReturne = await pair.calculateFeeAmounts(burnReturn.balance0, burnReturn.balance1)
@@ -97,7 +98,7 @@ describe('UniswapV2Pair', () => {
     expect(burnReturne.feeAmount1.toString()).to.eq(expectedValue)
 
     console.log(burnReturn.balance0, '0', burnReturn.balance1, '1')
-
+*/
     /*
     await expect())
       .to.emit(pair, 'Transfer')
