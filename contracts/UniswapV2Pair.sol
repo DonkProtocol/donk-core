@@ -136,29 +136,20 @@ contract UniswapV2Pair is UniswapV2ERC20 {
     }
 
     function burn(address to) external lock returns (uint amount0, uint amount1) {
-        (
-            uint liquidity,
-            uint balance0,
-            uint balance1,
-            uint112 _reserve0,
-            uint112 _reserve1,
-            address _token0,
-            address _token1
-        ) = getBurnInputs();
-        (uint feeAmount0, uint feeAmount1) = calculateFeeAmounts();
+        (uint liquidity, uint balance0, uint balance1, uint112 _reserve0, uint112 _reserve1) = getBurnInputs();
+        (uint feeAmount0, uint feeAmount1, uint providerFee0, uint providerFee1, uint pairFee) = calculateFeeAmounts();
 
         bool feeOn = _mintFee(_reserve0, _reserve1);
 
-        uint _totalSupply = totalSupply; // gas savings, must be defined here since totalSupply can update in _mintFee
-        amount0 = liquidity.mul(balance0) / _totalSupply; // using balances ensures pro-rata distribution
-        amount1 = liquidity.mul(balance1) / _totalSupply; // using balances ensures pro-rata distribution
+        (amount0, amount1) = getAmounts(liquidity, balance0, balance1);
+
         require(amount0 > 0 && amount1 > 0, 'UniswapV2: INSUFFICIENT_LIQUIDITY_BURNED');
         _burn(address(this), liquidity);
 
-        payUserAmounts(to, amount0, amount1, feeAmount0, feeAmount1);
+        payUserAmounts(to, amount0, amount1, feeAmount0, feeAmount1, providerFee0, providerFee1, pairFee);
 
-        balance0 = IERC20Uniswap(_token0).balanceOf(address(this));
-        balance1 = IERC20Uniswap(_token1).balanceOf(address(this));
+        balance0 = IERC20Uniswap(token0).balanceOf(address(this));
+        balance1 = IERC20Uniswap(token1).balanceOf(address(this));
 
         _update(balance0, balance1, _reserve0, _reserve1);
         if (feeOn) kLast = uint(_reserve0).mul(_reserve1); // _reserve0 and _reserve1 are up-to-date
@@ -166,19 +157,35 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         emit Burn(msg.sender, amount0, amount1, to);
     }
 
-    function payUserAmounts(address to, uint amount0, uint amount1, uint feeAmount0, uint feeAmount1) public {
+    function getAmounts(uint liquidity, uint balance0, uint balance1) public view returns (uint amount0, uint amount1) {
+        uint _totalSupply = totalSupply; // gas savings, must be defined here since totalSupply can update in _mintFee
+        amount0 = liquidity.mul(balance0) / _totalSupply; // using balances ensures pro-rata distribution
+        amount1 = liquidity.mul(balance1) / _totalSupply; // using balances ensures pro-rata distribution
+    }
+
+    function payUserAmounts(
+        address to,
+        uint amount0,
+        uint amount1,
+        uint feeAmount0,
+        uint feeAmount1,
+        uint providerFee0,
+        uint providerFee1,
+        uint pairFee
+    ) private {
         address _feeToSetter = IUniswapV2Factory(factory).feeToSetter();
-        if (feeAmount0 > 0) {
+        //transfering provider fee to the provider and the admin fee to the admin wallet
+        if (feeAmount1 > 0) {
             _safeTransfer(token0, _feeToSetter, feeAmount0);
-            _safeTransfer(token0, to, amount0.subSafeMath(feeAmount0));
+            _safeTransfer(token0, to, amount0.subSafeMath(pairFee).addSafeMath(providerFee0));
             accumulatedFeeToken0[address(this)] = 0;
         } else {
             _safeTransfer(token0, to, amount0);
         }
 
-        if (feeAmount1 > 0) {
+        if (feeAmount0 > 0) {
             _safeTransfer(token1, _feeToSetter, feeAmount1);
-            _safeTransfer(token1, to, amount1.subSafeMath(feeAmount1));
+            _safeTransfer(token1, to, amount1.subSafeMath(pairFee).addSafeMath(providerFee1));
             accumulatedFeeToken0[address(this)] = 0;
         } else {
             _safeTransfer(token1, to, amount1);
@@ -188,28 +195,34 @@ contract UniswapV2Pair is UniswapV2ERC20 {
     function getBurnInputs()
         public
         view
-        returns (
-            uint liquidity,
-            uint balance0,
-            uint balance1,
-            uint112 _reserve0,
-            uint112 _reserve1,
-            address _token0,
-            address _token1
-        )
+        returns (uint liquidity, uint balance0, uint balance1, uint112 _reserve0, uint112 _reserve1)
     {
         (_reserve0, _reserve1, ) = getReserves(); // gas savings
-        _token0 = token0; // gas savings
-        _token1 = token1; // gas savings
-        balance0 = IERC20Uniswap(_token0).balanceOf(address(this));
-        balance1 = IERC20Uniswap(_token1).balanceOf(address(this));
+        balance0 = IERC20Uniswap(token0).balanceOf(address(this));
+        balance1 = IERC20Uniswap(token1).balanceOf(address(this));
         liquidity = balanceOf[address(this)];
     }
 
-    function calculateFeeAmounts() public view returns (uint feeAmount0, uint feeAmount1) {
+    function calculateFeeAmounts()
+        public
+        view
+        returns (uint feeAmount0, uint feeAmount1, uint providerFee0, uint providerFee1, uint pairFee)
+    {
         uint fees = IUniswapV2Factory(factory).adminFee();
-        feeAmount0 = accumulatedFeeToken0[address(this)].mulSafeMath(fees).div(10000); // 0.17% of balance0
-        feeAmount1 = accumulatedFeeToken1[address(this)].mulSafeMath(fees).div(10000); // 0.17% of balance1
+        uint providerFees = IUniswapV2Factory(factory).providerFee();
+        uint total = 100;
+
+        //pair fee it will let the rest for the pair
+
+        uint calcPairFee = total.subSafeMath(fees).subSafeMath(providerFees).div(10000); // 0.60%
+        pairFee = accumulatedFeeToken0[address(this)].mulSafeMath(calcPairFee).div(10000); // 0.60%
+        //admin fee
+        feeAmount0 = accumulatedFeeToken0[address(this)].mulSafeMath(fees).div(10000); // 0.17%
+        feeAmount1 = accumulatedFeeToken1[address(this)].mulSafeMath(fees).div(10000); // 0.17%
+
+        //provider fee
+        providerFee0 = accumulatedFeeToken0[address(this)].mulSafeMath(providerFees).div(10000); // 0.23%
+        providerFee1 = accumulatedFeeToken1[address(this)].mulSafeMath(providerFees).div(10000); // 023%
     }
 
     // this low-level function should be called from a contract which performs important safety checks
