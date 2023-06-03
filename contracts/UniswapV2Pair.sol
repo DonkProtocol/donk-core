@@ -30,6 +30,8 @@ contract UniswapV2Pair is UniswapV2ERC20 {
 
     mapping(address => uint) public accumulatedFeeToken0;
     mapping(address => uint) public accumulatedFeeToken1;
+    mapping(address => uint) public accumulatedFeeAdmin0;
+    mapping(address => uint) public accumulatedFeeAdmin1;
 
     uint private unlocked = 1;
     modifier lock() {
@@ -137,7 +139,7 @@ contract UniswapV2Pair is UniswapV2ERC20 {
 
     function burn(address to) external lock returns (uint amount0, uint amount1) {
         (uint liquidity, uint balance0, uint balance1, uint112 _reserve0, uint112 _reserve1) = getBurnInputs();
-        (uint feeAmount0, uint feeAmount1, uint providerFee0, uint providerFee1, uint pairFee) = calculateFeeAmounts();
+        (uint feeAmount0, uint feeAmount1) = calculateFeeAmounts();
 
         bool feeOn = _mintFee(_reserve0, _reserve1);
 
@@ -146,7 +148,7 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         require(amount0 > 0 && amount1 > 0, 'UniswapV2: INSUFFICIENT_LIQUIDITY_BURNED');
         _burn(address(this), liquidity);
 
-        payUserAmounts(to, amount0, amount1, feeAmount0, feeAmount1, providerFee0, providerFee1, pairFee);
+        payUserAmounts(to, amount0, amount1, feeAmount0, feeAmount1);
 
         balance0 = IERC20Uniswap(token0).balanceOf(address(this));
         balance1 = IERC20Uniswap(token1).balanceOf(address(this));
@@ -163,30 +165,23 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         amount1 = liquidity.mul(balance1) / _totalSupply; // using balances ensures pro-rata distribution
     }
 
-    function payUserAmounts(
-        address to,
-        uint amount0,
-        uint amount1,
-        uint feeAmount0,
-        uint feeAmount1,
-        uint providerFee0,
-        uint providerFee1,
-        uint pairFee
-    ) private {
+    function payUserAmounts(address to, uint amount0, uint amount1, uint feeAmount0, uint feeAmount1) private {
         address _feeToSetter = IUniswapV2Factory(factory).feeToSetter();
         //transfering provider fee to the provider and the admin fee to the admin wallet
         if (feeAmount1 > 0) {
             _safeTransfer(token0, _feeToSetter, feeAmount0);
-            _safeTransfer(token0, to, amount0.subSafeMath(pairFee).addSafeMath(providerFee0));
+            _safeTransfer(token0, to, amount0.subSafeMath(accumulatedFeeAdmin0[address(this)]));
             accumulatedFeeToken0[address(this)] = 0;
+            accumulatedFeeAdmin0[address(this)] = 0;
         } else {
             _safeTransfer(token0, to, amount0);
         }
 
         if (feeAmount0 > 0) {
             _safeTransfer(token1, _feeToSetter, feeAmount1);
-            _safeTransfer(token1, to, amount1.subSafeMath(pairFee).addSafeMath(providerFee1));
-            accumulatedFeeToken0[address(this)] = 0;
+            _safeTransfer(token1, to, amount1.subSafeMath(accumulatedFeeAdmin1[address(this)]));
+            accumulatedFeeToken1[address(this)] = 0;
+            accumulatedFeeAdmin1[address(this)] = 0;
         } else {
             _safeTransfer(token1, to, amount1);
         }
@@ -203,26 +198,10 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         liquidity = balanceOf[address(this)];
     }
 
-    function calculateFeeAmounts()
-        public
-        view
-        returns (uint feeAmount0, uint feeAmount1, uint providerFee0, uint providerFee1, uint pairFee)
-    {
-        uint fees = IUniswapV2Factory(factory).adminFee();
-        uint providerFees = IUniswapV2Factory(factory).providerFee();
-        uint total = 100;
-
-        //pair fee it will let the rest for the pair
-
-        uint calcPairFee = total.subSafeMath(fees).subSafeMath(providerFees).div(10000); // 0.60%
-        pairFee = accumulatedFeeToken0[address(this)].mulSafeMath(calcPairFee).div(10000); // 0.60%
+    function calculateFeeAmounts() public view returns (uint feeAmount0, uint feeAmount1) {
         //admin fee
-        feeAmount0 = accumulatedFeeToken0[address(this)].mulSafeMath(fees).div(10000); // 0.17%
-        feeAmount1 = accumulatedFeeToken1[address(this)].mulSafeMath(fees).div(10000); // 0.17%
-
-        //provider fee
-        providerFee0 = accumulatedFeeToken0[address(this)].mulSafeMath(providerFees).div(10000); // 0.23%
-        providerFee1 = accumulatedFeeToken1[address(this)].mulSafeMath(providerFees).div(10000); // 023%
+        feeAmount0 = accumulatedFeeAdmin0[address(this)]; // 0.17%
+        feeAmount1 = accumulatedFeeAdmin1[address(this)]; // 0.17%
     }
 
     // this low-level function should be called from a contract which performs important safety checks
@@ -264,13 +243,19 @@ contract UniswapV2Pair is UniswapV2ERC20 {
     }
 
     function calculateLiquidityFee(uint amount0Out, uint amount1Out) public {
-        uint swapFees = IUniswapV2Factory(factory).swapFee();
+        uint providerFee = IUniswapV2Factory(factory).providerFee();
+        uint fees = IUniswapV2Factory(factory).adminFee();
+        if (amount1Out > 0) {
+            uint feeToken0 = amount0Out.mulSafeMath(providerFee).div(100);
+            uint adminFee0 = amount0Out.mulSafeMath(fees).div(100);
 
-        if (amount0Out > 0) {
-            uint feeToken0 = amount0Out.mulSafeMath(swapFees).div(1000);
+            accumulatedFeeAdmin0[address(this)] = accumulatedFeeAdmin0[address(this)].addSafeMath(adminFee0);
             accumulatedFeeToken0[address(this)] = accumulatedFeeToken0[address(this)].addSafeMath(feeToken0);
-        } else if (amount1Out > 0) {
-            uint feeToken1 = amount1Out.mulSafeMath(swapFees).div(1000);
+        } else if (amount0Out > 0) {
+            uint feeToken1 = amount1Out.mulSafeMath(providerFee).div(100);
+            uint adminFee1 = amount1Out.mulSafeMath(fees).div(100);
+
+            accumulatedFeeAdmin1[address(this)] = accumulatedFeeAdmin1[address(this)].addSafeMath(adminFee1);
             accumulatedFeeToken1[address(this)] = accumulatedFeeToken1[address(this)].addSafeMath(feeToken1);
         }
     }

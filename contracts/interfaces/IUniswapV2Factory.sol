@@ -11,8 +11,6 @@ interface IUniswapV2Factory {
 
     function adminFee() external view returns (uint256);
 
-    function swapFee() external view returns (uint256);
-
     function providerFee() external view returns (uint256);
 
     function getPair(address tokenA, address tokenB) external view returns (address pair);

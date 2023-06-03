@@ -21,6 +21,11 @@
 						"internalType": "uint256",
 						"name": "_swapFee",
 						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_providerFee",
+						"type": "uint256"
 					}
 				],
 				"stateMutability": "nonpayable",
@@ -204,6 +209,19 @@
 			},
 			{
 				"inputs": [],
+				"name": "getProviderFee",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
 				"name": "getSwapFee",
 				"outputs": [
 					{
@@ -226,6 +244,19 @@
 					}
 				],
 				"stateMutability": "pure",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "providerFee",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
 				"type": "function"
 			},
 			{
@@ -263,6 +294,19 @@
 					}
 				],
 				"name": "setFeeToSetter",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_fee",
+						"type": "uint256"
+					}
+				],
+				"name": "setProviderFee",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -330,19 +374,19 @@
 			]
 		},
 		"UniswapV2Factory.sol": {
-			"keccak256": "0x70cbbde93aed23b2110420ade8f0c0361ab681cf4d094ec50a3692a4ff5d2c01",
+			"keccak256": "0x4d7ef6175fc1fad41c4f5244e5c4d87ea31dfc97bda1c4cecfd1ab807ba996d2",
 			"license": "GPL-3.0",
 			"urls": [
-				"bzz-raw://57b08be004546a6d6fa8b29d562a25e057752a328c1db8912dbce5e5d1059fd1",
-				"dweb:/ipfs/QmfBMSgAQD7GMtysn4yUPFerXmFnWHLAUYS5nztjGqsXDK"
+				"bzz-raw://9e494def68a95e68c1bcddf81bd74abefb7bc8583c11fec8d6159898d06a624a",
+				"dweb:/ipfs/QmSQNp273dCeNT9EvUNb2emfaYrjegfkTG2aASx1ooA6fP"
 			]
 		},
 		"UniswapV2Pair.sol": {
-			"keccak256": "0xb004114e8154226de37f97573b751ecd0bfd0357e4167077dc5770ee19b659d7",
+			"keccak256": "0x62cb5a51f7dabf077ed136dd7fabb0248a645cd4dea5e0a1513d4e5e1088f619",
 			"license": "GPL-3.0",
 			"urls": [
-				"bzz-raw://fdac9357470466c25d7db4ab74244e582069bbf13f4d3adba72012b01cbc3a3c",
-				"dweb:/ipfs/QmQCaED4eoFeToKxaRRJad1UpebJw6qRTQf2RHuy6aF1Gx"
+				"bzz-raw://af7097d0b099442997918af4a3beba0e389619c380a3b4b611cbc8cca1bbf698",
+				"dweb:/ipfs/QmPi5znXzCJBVaEv6QJvj6GjYMQpuREknNdoWRUokGWjf6"
 			]
 		},
 		"interfaces/IERC20.sol": {
@@ -362,11 +406,11 @@
 			]
 		},
 		"interfaces/IUniswapV2Factory.sol": {
-			"keccak256": "0x629af154d1f72708cd1813193922ef5577356f19ba9fc9f769d82cfe9f72c12f",
+			"keccak256": "0xd6c5ce1bd22dfe84820de11b4d0de7726ad1c87e0cfc84deceddfbd00b332952",
 			"license": "GPL-3.0",
 			"urls": [
-				"bzz-raw://0c53728e6f9b135e11f7d5e982be151f88ae2e838e7451bf2d222ebcfe6c3d3d",
-				"dweb:/ipfs/QmVYKcDUcj9xprY2rQ4mpYBPjxrmNkfkgqDWTDi5QsRMJ3"
+				"bzz-raw://bf3d9268a81700285ec4768657dea393973c77c8e1ff07e6cb2fcfbda4caba6b",
+				"dweb:/ipfs/QmT5MEM9uMQFekZFmbwCRn9xSEcczTXRrbgXjsKFajwpkn"
 			]
 		},
 		"libraries/Math.sol": {
