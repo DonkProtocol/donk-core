@@ -169,17 +169,17 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         address _feeToSetter = IUniswapV2Factory(factory).feeToSetter();
         //transfering provider fee to the provider and the admin fee to the admin wallet
         if (feeAmount0 > 0) {
-            _safeTransfer(token1, _feeToSetter, feeAmount0);
-            _safeTransfer(token1, to, amount0.subSafeMath(feeAmount0));
+            _safeTransfer(token0, _feeToSetter, feeAmount0);
+            _safeTransfer(token0, to, amount0.subSafeMath(feeAmount0));
         } else {
-            _safeTransfer(token1, to, amount0);
+            _safeTransfer(token0, to, amount0);
         }
 
         if (feeAmount1 > 0) {
-            _safeTransfer(token0, _feeToSetter, feeAmount1);
-            _safeTransfer(token0, to, amount1.subSafeMath(feeAmount1));
+            _safeTransfer(token1, _feeToSetter, feeAmount1);
+            _safeTransfer(token1, to, amount1.subSafeMath(feeAmount1));
         } else {
-            _safeTransfer(token0, to, amount1);
+            _safeTransfer(token1, to, amount1);
         }
 
         accumulatedFeeToken1[address(this)] = 0;
@@ -232,7 +232,7 @@ contract UniswapV2Pair is UniswapV2ERC20 {
             uint balance0Adjusted = balance0.mul(1000).sub(amount0In.mul(3));
             uint balance1Adjusted = balance1.mul(1000).sub(amount1In.mul(3));
 
-            calculateLiquidityFee(amount0Out, amount1Out);
+            calculateLiquidityFee(amount1Out, amount0Out);
             require(
                 balance0Adjusted.mul(balance1Adjusted) >= uint(_reserve0).mul(_reserve1).mul(1000 ** 2),
                 'UniswapV2: K'
