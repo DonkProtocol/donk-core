@@ -338,11 +338,11 @@
 			]
 		},
 		"UniswapV2Pair.sol": {
-			"keccak256": "0x2ad79ccd70588445d091d38d8b1e088cbd777e68c1547d7018af06f0814871d5",
+			"keccak256": "0x462a66ac256f838379f5b84d4fa159266b99bef15c42502ba736952409d263de",
 			"license": "GPL-3.0",
 			"urls": [
-				"bzz-raw://19e03fa732f14f8e8ef0c0174be528a0e6bb48399d0c8f7f9b6a62782dfdee99",
-				"dweb:/ipfs/QmUJ9mkX8UpUiwrmWrooQHtdHkZZqXPYTAFFAEG5jm3zud"
+				"bzz-raw://c19c59de14c7aa1b2b018d778683a3667e867c982a31f80ff58f11914d816e39",
+				"dweb:/ipfs/QmbfXYz8EMYYcdi4wPaV3DSuwowAV1Yz9vsRmXjVYvjfWp"
 			]
 		},
 		"interfaces/IERC20.sol": {
@@ -378,11 +378,11 @@
 			]
 		},
 		"libraries/SafeMath.sol": {
-			"keccak256": "0x9d5aa9e4cb2a92f39ca07522cac51cc18c083fb10730e09a549c7c486136d9e0",
+			"keccak256": "0x5069668989a1dbc8e0b642f952742f63dc574c9c44e6df26c447812fe5440ac3",
 			"license": "GPL-3.0",
 			"urls": [
-				"bzz-raw://32b6eb7ff47b12d0272e7a47605e7a267ec450fcbc7b243e868d4dd5d9bc7e25",
-				"dweb:/ipfs/QmX6txw96K7vc8mSV9yJNUAbnXrxKBN8GzW3HGf1WfQb1a"
+				"bzz-raw://4632fcb93100f7e9e643fc1b1d4a68a9177a26adc118d5fdbf345dd304d0fb33",
+				"dweb:/ipfs/QmQGg5ZMUwwBhBy1EsTDWbi1XdGzYZFHYX4YQN345ScVUq"
 			]
 		},
 		"libraries/UQ112x112.sol": {

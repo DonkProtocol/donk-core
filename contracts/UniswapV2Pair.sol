@@ -169,22 +169,23 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         address _feeToSetter = IUniswapV2Factory(factory).feeToSetter();
         //transfering provider fee to the provider and the admin fee to the admin wallet
         if (feeAmount0 > 0) {
-            _safeTransfer(token0, _feeToSetter, feeAmount0);
-            _safeTransfer(token0, to, amount0.subSafeMath(feeAmount0));
-            accumulatedFeeToken0[address(this)] = 0;
-            accumulatedFeeAdmin0[address(this)] = 0;
+            _safeTransfer(token1, _feeToSetter, feeAmount0);
+            _safeTransfer(token1, to, amount0.subSafeMath(feeAmount0));
         } else {
-            _safeTransfer(token0, to, amount0);
+            _safeTransfer(token1, to, amount0);
         }
 
         if (feeAmount1 > 0) {
-            _safeTransfer(token1, _feeToSetter, feeAmount1);
-            _safeTransfer(token1, to, amount1.subSafeMath(feeAmount1));
-            accumulatedFeeToken1[address(this)] = 0;
-            accumulatedFeeAdmin1[address(this)] = 0;
+            _safeTransfer(token0, _feeToSetter, feeAmount1);
+            _safeTransfer(token0, to, amount1.subSafeMath(feeAmount1));
         } else {
-            _safeTransfer(token1, to, amount1);
+            _safeTransfer(token0, to, amount1);
         }
+
+        accumulatedFeeToken1[address(this)] = 0;
+        accumulatedFeeAdmin1[address(this)] = 0;
+        accumulatedFeeToken0[address(this)] = 0;
+        accumulatedFeeAdmin0[address(this)] = 0;
     }
 
     function getBurnInputs()
