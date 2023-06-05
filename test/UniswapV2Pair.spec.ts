@@ -87,8 +87,6 @@ describe('UniswapV2Pair', () => {
     // Transferência de tokens para o contrato
     const expectedLiquidity = expandTo18Decimals(3)
     await pair.transfer(pair.address, expectedLiquidity.sub(MINIMUM_LIQUIDITY))
-    const pa = await pair.calculateLiquidityFee(1, 0)
-    await pa.wait()
 
     const amount = ethers.utils.parseEther('500')
     const ve = await pair.testTaxes(amount)
