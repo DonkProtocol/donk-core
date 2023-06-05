@@ -168,18 +168,18 @@ contract UniswapV2Pair is UniswapV2ERC20 {
     function payUserAmounts(address to, uint amount0, uint amount1, uint feeAmount0, uint feeAmount1) private {
         address _feeToSetter = IUniswapV2Factory(factory).feeToSetter();
         //transfering provider fee to the provider and the admin fee to the admin wallet
-        if (feeAmount1 > 0) {
+        if (feeAmount0 > 0) {
             _safeTransfer(token0, _feeToSetter, feeAmount0);
-            _safeTransfer(token0, to, amount0.subSafeMath(accumulatedFeeAdmin0[address(this)]));
+            _safeTransfer(token0, to, amount0.subSafeMath(feeAmount0));
             accumulatedFeeToken0[address(this)] = 0;
             accumulatedFeeAdmin0[address(this)] = 0;
         } else {
             _safeTransfer(token0, to, amount0);
         }
 
-        if (feeAmount0 > 0) {
+        if (feeAmount1 > 0) {
             _safeTransfer(token1, _feeToSetter, feeAmount1);
-            _safeTransfer(token1, to, amount1.subSafeMath(accumulatedFeeAdmin1[address(this)]));
+            _safeTransfer(token1, to, amount1.subSafeMath(feeAmount1));
             accumulatedFeeToken1[address(this)] = 0;
             accumulatedFeeAdmin1[address(this)] = 0;
         } else {
@@ -242,22 +242,32 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         emit Swap(msg.sender, amount0In, amount1In, amount0Out, amount1Out, to);
     }
 
-    function calculateLiquidityFee(uint amount0Out, uint amount1Out) public {
+    function calculateLiquidityFee(uint amount0Out, uint amount1Out) private {
         uint providerFee = IUniswapV2Factory(factory).providerFee();
         uint fees = IUniswapV2Factory(factory).adminFee();
-        if (amount1Out > 0) {
-            uint feeToken0 = amount0Out.mulSafeMath(providerFee).div(1000);
-            uint adminFee0 = amount0Out.mulSafeMath(fees).div(1000);
+        if (amount0Out > 0) {
+            uint feeToken0 = (amount0Out * providerFee) / 10000; //0.17
+            uint adminFee0 = (amount0Out * fees) / 10000; //0.23
 
-            accumulatedFeeAdmin0[address(this)] = accumulatedFeeAdmin0[address(this)].addSafeMath(adminFee0);
-            accumulatedFeeToken0[address(this)] = accumulatedFeeToken0[address(this)].addSafeMath(feeToken0);
-        } else if (amount0Out > 0) {
-            uint feeToken1 = amount1Out.mulSafeMath(providerFee).div(1000);
-            uint adminFee1 = amount1Out.mulSafeMath(fees).div(1000);
+            accumulatedFeeAdmin0[address(this)] = accumulatedFeeAdmin0[address(this)].add(adminFee0);
+            accumulatedFeeToken0[address(this)] = accumulatedFeeToken0[address(this)].add(feeToken0);
+        } else if (amount1Out > 0) {
+            uint feeToken1 = (amount1Out * providerFee) / 10000; //0.17
+            uint adminFee1 = (amount1Out * fees) / 10000; //0.23
 
-            accumulatedFeeAdmin1[address(this)] = accumulatedFeeAdmin1[address(this)].addSafeMath(adminFee1);
-            accumulatedFeeToken1[address(this)] = accumulatedFeeToken1[address(this)].addSafeMath(feeToken1);
+            accumulatedFeeAdmin1[address(this)] = accumulatedFeeAdmin1[address(this)].add(adminFee1);
+            accumulatedFeeToken1[address(this)] = accumulatedFeeToken1[address(this)].add(feeToken1);
         }
+    }
+
+    function testTaxes(uint amount0Out) public view returns (uint256 value, uint256 value1) {
+        uint providerFee = IUniswapV2Factory(factory).providerFee();
+        uint fees = IUniswapV2Factory(factory).adminFee();
+        require(providerFee <= 100, 'Invalid percentage');
+        require(fees <= 100, 'Invalid percentage');
+
+        value = (amount0Out * providerFee) / 10000;
+        value1 = (amount0Out * fees) / 10000;
     }
 
     // force balances to match reserves

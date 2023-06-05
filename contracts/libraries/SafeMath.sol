@@ -22,16 +22,13 @@ library SafeMathUniswap {
             return 0;
         }
         uint256 c = a * b;
-        require(c / a == b, 'SafeMath: mul overflow');
+        require(c / a == b, 'SafeMath: multiplication overflow');
         return c;
     }
 
     function div(uint256 a, uint256 b) internal pure returns (uint256) {
-        // Verificar se b é diferente de zero para evitar divisão por zero
-        require(b > 0, 'SafeMath: div by zero');
+        require(b > 0, 'SafeMath: division by zero');
         uint256 c = a / b;
-        // Verificar se a divisão não resultou em overflow
-        require(a == b * c + (a % b), 'SafeMath: div by the rest');
         return c;
     }
 

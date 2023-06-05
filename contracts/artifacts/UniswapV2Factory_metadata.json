@@ -19,11 +19,6 @@
 					},
 					{
 						"internalType": "uint256",
-						"name": "_swapFee",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
 						"name": "_providerFee",
 						"type": "uint256"
 					}
@@ -222,19 +217,6 @@
 			},
 			{
 				"inputs": [],
-				"name": "getSwapFee",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [],
 				"name": "pairCodeHash",
 				"outputs": [
 					{
@@ -310,32 +292,6 @@
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
-			},
-			{
-				"inputs": [
-					{
-						"internalType": "uint256",
-						"name": "_fee",
-						"type": "uint256"
-					}
-				],
-				"name": "setSwapFee",
-				"outputs": [],
-				"stateMutability": "nonpayable",
-				"type": "function"
-			},
-			{
-				"inputs": [],
-				"name": "swapFee",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
 			}
 		],
 		"devdoc": {
@@ -374,19 +330,19 @@
 			]
 		},
 		"UniswapV2Factory.sol": {
-			"keccak256": "0x4d7ef6175fc1fad41c4f5244e5c4d87ea31dfc97bda1c4cecfd1ab807ba996d2",
+			"keccak256": "0xaa6bc287b749dbc304d00a3827753a9f0b3c7942e660e1ab3e3b83f77b87f694",
 			"license": "GPL-3.0",
 			"urls": [
-				"bzz-raw://9e494def68a95e68c1bcddf81bd74abefb7bc8583c11fec8d6159898d06a624a",
-				"dweb:/ipfs/QmSQNp273dCeNT9EvUNb2emfaYrjegfkTG2aASx1ooA6fP"
+				"bzz-raw://5bb431647b4c9255e937936f0849fdf9d15dfdc508b1c1ff50f431b7675e117a",
+				"dweb:/ipfs/QmVGjnfHhwytc76PKmqiFymZ657UM9xXNsYyAYdAa9qef8"
 			]
 		},
 		"UniswapV2Pair.sol": {
-			"keccak256": "0x62cb5a51f7dabf077ed136dd7fabb0248a645cd4dea5e0a1513d4e5e1088f619",
+			"keccak256": "0x2ad79ccd70588445d091d38d8b1e088cbd777e68c1547d7018af06f0814871d5",
 			"license": "GPL-3.0",
 			"urls": [
-				"bzz-raw://af7097d0b099442997918af4a3beba0e389619c380a3b4b611cbc8cca1bbf698",
-				"dweb:/ipfs/QmPi5znXzCJBVaEv6QJvj6GjYMQpuREknNdoWRUokGWjf6"
+				"bzz-raw://19e03fa732f14f8e8ef0c0174be528a0e6bb48399d0c8f7f9b6a62782dfdee99",
+				"dweb:/ipfs/QmUJ9mkX8UpUiwrmWrooQHtdHkZZqXPYTAFFAEG5jm3zud"
 			]
 		},
 		"interfaces/IERC20.sol": {
@@ -406,11 +362,11 @@
 			]
 		},
 		"interfaces/IUniswapV2Factory.sol": {
-			"keccak256": "0xd6c5ce1bd22dfe84820de11b4d0de7726ad1c87e0cfc84deceddfbd00b332952",
+			"keccak256": "0x7b5592db9b7a2bbd35367aa7ea5cd07fcd1b2962872687647a43f791534a04f0",
 			"license": "GPL-3.0",
 			"urls": [
-				"bzz-raw://bf3d9268a81700285ec4768657dea393973c77c8e1ff07e6cb2fcfbda4caba6b",
-				"dweb:/ipfs/QmT5MEM9uMQFekZFmbwCRn9xSEcczTXRrbgXjsKFajwpkn"
+				"bzz-raw://e6883544d58f5fcce6ff0085c80a9c1db7c30c515363629eee71edfcd713bf6d",
+				"dweb:/ipfs/QmbXM6MrM3sdtg4zRfQhH2HeqKDJePJfagrX7vfQpBFmns"
 			]
 		},
 		"libraries/Math.sol": {

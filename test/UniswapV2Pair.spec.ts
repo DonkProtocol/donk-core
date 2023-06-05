@@ -6,7 +6,8 @@ import { BigNumber, bigNumberify } from 'ethers/utils'
 import { expandTo18Decimals, mineBlock, encodePrice } from './shared/utilities'
 import { pairFixture } from './shared/fixtures'
 import { AddressZero } from 'ethers/constants'
-
+import { ethers } from 'ethers'
+import Web3 from 'web3'
 const MINIMUM_LIQUIDITY = bigNumberify(10).pow(3)
 
 chai.use(solidity)
@@ -86,7 +87,25 @@ describe('UniswapV2Pair', () => {
     // Transferência de tokens para o contrato
     const expectedLiquidity = expandTo18Decimals(3)
     await pair.transfer(pair.address, expectedLiquidity.sub(MINIMUM_LIQUIDITY))
+    const pa = await pair.calculateLiquidityFee(1, 0)
+    await pa.wait()
 
+    const amount = ethers.utils.parseEther('500')
+    const ve = await pair.testTaxes(amount)
+
+    const web3 = new Web3()
+    const wei = web3.utils.toWei(ve.value.toString(), 'wei')
+    const wei2 = web3.utils.toWei(ve.value1.toString(), 'wei')
+    console.log(wei)
+    console.log(wei2)
+
+    expect(wei).to.eq(ethers.utils.parseEther('1.15'))
+    expect(wei2).to.eq(ethers.utils.parseEther('0.85'))
+
+    // const test0 = await pair.calculateLiquidityFee(amount, 0)
+    //  await test0.wait()
+    //  const test1 = await pair.returnAdminTaxes()
+    //console.log(web3.utils.toWei(test1.toString(), 'wei'))
     // Chamada estática da função 'burn' no contrato para obter o retorno
     /*
     const burnReturn = await pair.getBurnInputs()
