@@ -151,7 +151,7 @@ contract UniswapV2Pair is UniswapV2ERC20 {
 
         bool feeOn = _mintFee(_reserve0, _reserve1);
 
-        (amount0, amount1) = getAmounts(liquidity, balance0, balance1, _reserve0, _reserve1);
+        (amount0, amount1) = getAmounts(liquidity, balance0, balance1 /* _reserve0, _reserve1 */);
 
         require(amount0 > 0 && amount1 > 0, 'UniswapV2: INSUFFICIENT_LIQUIDITY_BURNED');
         _burn(address(this), liquidity);
@@ -168,10 +168,16 @@ contract UniswapV2Pair is UniswapV2ERC20 {
     function getAmounts(
         uint liquidity,
         uint balance0,
-        uint balance1,
-        uint112 _reserve0,
-        uint112 _reserve1
-    ) private returns (uint amount0, uint amount1) {
+        uint balance1
+    )
+        private
+        returns (
+            //  uint112 _reserve0,
+            //  uint112 _reserve1
+            uint amount0,
+            uint amount1
+        )
+    {
         uint _totalSupply = totalSupply; // gas savings, must be defined here since totalSupply can update in _mintFee
         uint amount00 = liquidity.mul(balance0) / _totalSupply; // using balances ensures pro-rata distribution
         uint amount11 = liquidity.mul(balance1) / _totalSupply; // using balances ensures pro-rata distribution
@@ -180,11 +186,11 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         address adminWallet = IUniswapV2Factory(factory).feeToSetter();
 
         //initial amounts
-        uint amount0Initial = balance0.subSafeMath(_reserve0);
-        uint amount1Initial = balance1.subSafeMath(_reserve1);
+        // uint amount0Initial = balance0.subSafeMath(_reserve0);
+        //uint amount1Initial = balance1.subSafeMath(_reserve1);
 
         //checking if the user has to pay the 7 days fee
-        (uint fee0, uint fee1) = hasPassedSevenDays(msg.sender, amount0Initial, amount1Initial);
+        (uint fee0, uint fee1) = hasPassedSevenDays(msg.sender, amount00, amount11);
         if (fee0 > 0) {
             amount0 = amount00.subSafeMath(fee0);
             _safeTransfer(_token0, adminWallet, fee0);
@@ -236,15 +242,15 @@ contract UniswapV2Pair is UniswapV2ERC20 {
             require(to != _token0 && to != _token1, 'UniswapV2: INVALID_TO');
 
             if (data.length > 0) {
-                IUniswapV2Callee(to).uniswapV2Call(msg.sender, amount0OutAfterFee, amount1OutAfterFee, data);
+                IUniswapV2Callee(to).uniswapV2Call(msg.sender, amount1OutAfterFee, amount0OutAfterFee, data);
             }
 
             balance0 = IERC20Uniswap(_token0).balanceOf(address(this));
             balance1 = IERC20Uniswap(_token1).balanceOf(address(this));
         }
 
-        uint amount0In = balance0 > _reserve0 - amount0OutAfterFee ? balance0 - (_reserve0 - amount0OutAfterFee) : 0;
-        uint amount1In = balance1 > _reserve1 - amount1OutAfterFee ? balance1 - (_reserve1 - amount1OutAfterFee) : 0;
+        uint amount0In = balance0 > _reserve0 - amount1OutAfterFee ? balance0 - (_reserve0 - amount1OutAfterFee) : 0;
+        uint amount1In = balance1 > _reserve1 - amount0OutAfterFee ? balance1 - (_reserve1 - amount0OutAfterFee) : 0;
         require(amount0In > 0 || amount1In > 0, 'UniswapV2: INSUFFICIENT_INPUT_AMOUNT');
 
         {
@@ -280,7 +286,7 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         amount1OutAfterFee = amount1Out - adminFee1;
 
         if (amount0Out > 0) {
-            _safeTransfer(_token0, adminWallet, adminFee0); //tax for the token that enter the LP.
+            _safeTransfer(_token0, adminWallet, adminFee0); //tax for the token that enter the LP. //dont change
             _safeTransfer(_token1, to, amount0OutAfterFee); //paying the token that leave the LP.
         }
 
