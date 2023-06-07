@@ -28,10 +28,12 @@ contract UniswapV2Pair is UniswapV2ERC20 {
     uint public price1CumulativeLast = 0;
     uint public kLast; // reserve0 * reserve1, as of immediately after the most recent liquidity event
 
-    mapping(address => uint) public accumulatedFeeToken0;
-    mapping(address => uint) public accumulatedFeeToken1;
-    mapping(address => uint) public accumulatedFeeAdmin0;
-    mapping(address => uint) public accumulatedFeeAdmin1;
+    //saving the first timestamp
+    struct User {
+        uint256 timestampInitialize;
+    }
+
+    mapping(address => User) public users;
 
     uint private unlocked = 1;
     modifier lock() {
@@ -76,6 +78,7 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         require(msg.sender == factory, 'UniswapV2: FORBIDDEN'); // sufficient check
         token0 = _token0;
         token1 = _token1;
+        users[msg.sender].timestampInitialize = block.timestamp;
     }
 
     // update reserves and, on the first call per block, price accumulators
@@ -137,9 +140,14 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         emit Mint(msg.sender, amount0, amount1);
     }
 
+    // this low-level function should be called from a contract which performs important safety checks
     function burn(address to) external lock returns (uint amount0, uint amount1) {
-        (uint liquidity, uint balance0, uint balance1, uint112 _reserve0, uint112 _reserve1) = getBurnInputs();
-        (uint feeAmount0, uint feeAmount1) = calculateFeeAmounts();
+        (uint112 _reserve0, uint112 _reserve1, ) = getReserves(); // gas savings
+        address _token0 = token0; // gas savings
+        address _token1 = token1; // gas savings
+        uint balance0 = IERC20Uniswap(_token0).balanceOf(address(this));
+        uint balance1 = IERC20Uniswap(_token1).balanceOf(address(this));
+        uint liquidity = balanceOf[address(this)];
 
         bool feeOn = _mintFee(_reserve0, _reserve1);
 
@@ -147,92 +155,98 @@ contract UniswapV2Pair is UniswapV2ERC20 {
 
         require(amount0 > 0 && amount1 > 0, 'UniswapV2: INSUFFICIENT_LIQUIDITY_BURNED');
         _burn(address(this), liquidity);
-
-        payUserAmounts(to, amount0, amount1, feeAmount0, feeAmount1);
-
-        balance0 = IERC20Uniswap(token0).balanceOf(address(this));
-        balance1 = IERC20Uniswap(token1).balanceOf(address(this));
+        _safeTransfer(_token0, to, amount0);
+        _safeTransfer(_token1, to, amount1);
+        balance0 = IERC20Uniswap(_token0).balanceOf(address(this));
+        balance1 = IERC20Uniswap(_token1).balanceOf(address(this));
 
         _update(balance0, balance1, _reserve0, _reserve1);
-        if (feeOn) kLast = uint(_reserve0).mul(_reserve1); // _reserve0 and _reserve1 are up-to-date
-
+        if (feeOn) kLast = uint(reserve0).mul(reserve1); // reserve0 and reserve1 are up-to-date
         emit Burn(msg.sender, amount0, amount1, to);
     }
 
-    function getAmounts(uint liquidity, uint balance0, uint balance1) public view returns (uint amount0, uint amount1) {
+    function getAmounts(uint liquidity, uint balance0, uint balance1) private returns (uint amount0, uint amount1) {
         uint _totalSupply = totalSupply; // gas savings, must be defined here since totalSupply can update in _mintFee
-        amount0 = liquidity.mul(balance0) / _totalSupply; // using balances ensures pro-rata distribution
-        amount1 = liquidity.mul(balance1) / _totalSupply; // using balances ensures pro-rata distribution
+        uint amount00 = liquidity.mul(balance0) / _totalSupply; // using balances ensures pro-rata distribution
+        uint amount11 = liquidity.mul(balance1) / _totalSupply; // using balances ensures pro-rata distribution
+        address _token0 = token0; // gas savings
+        address _token1 = token1; // gas savings
+        address adminWallet = IUniswapV2Factory(factory).feeToSetter();
+
+        (uint112 _reserve0, uint112 _reserve1, ) = getReserves(); // gas savings
+
+        //initial amounts
+        uint amount0Initial = balance0.sub(_reserve0);
+        uint amount1Initial = balance1.sub(_reserve1);
+
+        //checking if the user has to pay the 7 days fee
+        (uint fee0, uint fee1) = hasPassedSevenDays(msg.sender, amount0Initial, amount1Initial);
+        if (fee0 > 0) {
+            amount0 = amount00.subSafeMath(fee0);
+            _safeTransfer(_token0, adminWallet, fee0);
+        } else {
+            amount0 = amount00;
+        }
+        if (fee1 > 0) {
+            amount1 = amount11.subSafeMath(fee1);
+            _safeTransfer(_token1, adminWallet, fee1);
+        } else {
+            amount1 = amount11;
+        }
     }
 
-    function payUserAmounts(address to, uint amount0, uint amount1, uint feeAmount0, uint feeAmount1) private {
-        address _feeToSetter = IUniswapV2Factory(factory).feeToSetter();
-        //transfering provider fee to the provider and the admin fee to the admin wallet
-        if (feeAmount0 > 0) {
-            _safeTransfer(token0, _feeToSetter, feeAmount0);
-            _safeTransfer(token0, to, amount0.subSafeMath(feeAmount0));
-        } else {
-            _safeTransfer(token0, to, amount0);
+    //calculating the 7 days fee
+    function hasPassedSevenDays(
+        address userAddress,
+        uint amount0,
+        uint amount1
+    ) private view returns (uint fee0, uint fee1) {
+        uint fees = IUniswapV2Factory(factory).daysFee();
+        uint256 currentTimestamp = block.timestamp;
+        uint256 sevenDaysInSeconds = 7 days;
+
+        // Verificar se passaram 7 dias para o usuário atual
+        if (currentTimestamp >= users[userAddress].timestampInitialize + sevenDaysInSeconds) {
+            fee0 = (amount0 * fees) / 10000; //0.5%
+            fee1 = (amount1 * fees) / 10000; //0.5%
+            return (fee0.div(2), fee1.div(2)); //0.25%
         }
 
-        if (feeAmount1 > 0) {
-            _safeTransfer(token1, _feeToSetter, feeAmount1);
-            _safeTransfer(token1, to, amount1.subSafeMath(feeAmount1));
-        } else {
-            _safeTransfer(token1, to, amount1);
-        }
-
-        accumulatedFeeToken1[address(this)] = 0;
-        accumulatedFeeAdmin1[address(this)] = 0;
-        accumulatedFeeToken0[address(this)] = 0;
-        accumulatedFeeAdmin0[address(this)] = 0;
+        fee0 = 0;
+        fee1 = 0;
+        return (fee0, fee1);
     }
 
-    function getBurnInputs()
-        public
-        view
-        returns (uint liquidity, uint balance0, uint balance1, uint112 _reserve0, uint112 _reserve1)
-    {
-        (_reserve0, _reserve1, ) = getReserves(); // gas savings
-        balance0 = IERC20Uniswap(token0).balanceOf(address(this));
-        balance1 = IERC20Uniswap(token1).balanceOf(address(this));
-        liquidity = balanceOf[address(this)];
-    }
-
-    function calculateFeeAmounts() public view returns (uint feeAmount0, uint feeAmount1) {
-        //admin fee
-        feeAmount0 = accumulatedFeeAdmin0[address(this)]; // 0.17%
-        feeAmount1 = accumulatedFeeAdmin1[address(this)]; // 0.17%
-    }
-
-    // this low-level function should be called from a contract which performs important safety checks
     function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external lock {
         require(amount0Out > 0 || amount1Out > 0, 'UniswapV2: INSUFFICIENT_OUTPUT_AMOUNT');
-        (uint112 _reserve0, uint112 _reserve1, ) = getReserves(); // gas savings
+        (uint112 _reserve0, uint112 _reserve1, ) = getReserves(); // Economia de gás
         require(amount0Out < _reserve0 && amount1Out < _reserve1, 'UniswapV2: INSUFFICIENT_LIQUIDITY');
-
         uint balance0;
         uint balance1;
+
+        (uint amount0OutAfterFee, uint amount1OutAfterFee) = calculateLiquidityFee(amount1Out, amount0Out, to);
         {
-            // scope for _token{0,1}, avoids stack too deep errors
+            // Escopo para _token{0,1}, evita erros de "stack too deep"
             address _token0 = token0;
             address _token1 = token1;
             require(to != _token0 && to != _token1, 'UniswapV2: INVALID_TO');
-            if (amount0Out > 0) _safeTransfer(_token0, to, amount0Out); // optimistically transfer tokens
-            if (amount1Out > 0) _safeTransfer(_token1, to, amount1Out); // optimistically transfer tokens
-            if (data.length > 0) IUniswapV2Callee(to).uniswapV2Call(msg.sender, amount0Out, amount1Out, data);
+
+            if (data.length > 0) {
+                IUniswapV2Callee(to).uniswapV2Call(msg.sender, amount0OutAfterFee, amount1OutAfterFee, data);
+            }
+
             balance0 = IERC20Uniswap(_token0).balanceOf(address(this));
             balance1 = IERC20Uniswap(_token1).balanceOf(address(this));
         }
-        uint amount0In = balance0 > _reserve0 - amount0Out ? balance0 - (_reserve0 - amount0Out) : 0;
-        uint amount1In = balance1 > _reserve1 - amount1Out ? balance1 - (_reserve1 - amount1Out) : 0;
+
+        uint amount0In = balance0 > _reserve0 - amount0OutAfterFee ? balance0 - (_reserve0 - amount0OutAfterFee) : 0;
+        uint amount1In = balance1 > _reserve1 - amount1OutAfterFee ? balance1 - (_reserve1 - amount1OutAfterFee) : 0;
         require(amount0In > 0 || amount1In > 0, 'UniswapV2: INSUFFICIENT_INPUT_AMOUNT');
+
         {
             // scope for reserve{0,1}Adjusted, avoids stack too deep errors
             uint balance0Adjusted = balance0.mul(1000).sub(amount0In.mul(3));
             uint balance1Adjusted = balance1.mul(1000).sub(amount1In.mul(3));
-
-            calculateLiquidityFee(amount1Out, amount0Out);
             require(
                 balance0Adjusted.mul(balance1Adjusted) >= uint(_reserve0).mul(_reserve1).mul(1000 ** 2),
                 'UniswapV2: K'
@@ -240,24 +254,35 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         }
 
         _update(balance0, balance1, _reserve0, _reserve1);
-        emit Swap(msg.sender, amount0In, amount1In, amount0Out, amount1Out, to);
+        emit Swap(msg.sender, amount0In, amount1In, amount0OutAfterFee, amount1OutAfterFee, to);
     }
 
-    function calculateLiquidityFee(uint amount0Out, uint amount1Out) private {
-        uint providerFee = IUniswapV2Factory(factory).providerFee();
+    function calculateLiquidityFee(
+        uint amount0Out,
+        uint amount1Out,
+        address to
+    ) private returns (uint amount0OutAfterFee, uint amount1OutAfterFee) {
+        address adminWallet = IUniswapV2Factory(factory).feeToSetter();
         uint fees = IUniswapV2Factory(factory).adminFee();
+        require(fees > 0, 'UniswapV2: INSUFFICIENT_FEE_AMOUNT');
+
+        address _token0 = token0;
+        address _token1 = token1;
+
+        uint adminFee0 = (amount0Out * fees) / 10000; //0.12
+        amount0OutAfterFee = amount0Out - adminFee0;
+
+        uint adminFee1 = (amount1Out * fees) / 10000; //0.12
+        amount1OutAfterFee = amount1Out - adminFee1;
+
         if (amount0Out > 0) {
-            uint feeToken0 = (amount0Out * providerFee) / 10000; //0.17
-            uint adminFee0 = (amount0Out * fees) / 10000; //0.23
+            _safeTransfer(_token0, adminWallet, adminFee0); //tax for the token that enter the LP.
+            _safeTransfer(_token1, to, amount1OutAfterFee); //paying the token that leave the LP.
+        }
 
-            accumulatedFeeAdmin0[address(this)] = accumulatedFeeAdmin0[address(this)].add(adminFee0);
-            accumulatedFeeToken0[address(this)] = accumulatedFeeToken0[address(this)].add(feeToken0);
-        } else if (amount1Out > 0) {
-            uint feeToken1 = (amount1Out * providerFee) / 10000; //0.17
-            uint adminFee1 = (amount1Out * fees) / 10000; //0.23
-
-            accumulatedFeeAdmin1[address(this)] = accumulatedFeeAdmin1[address(this)].add(adminFee1);
-            accumulatedFeeToken1[address(this)] = accumulatedFeeToken1[address(this)].add(feeToken1);
+        if (amount1Out > 0) {
+            _safeTransfer(_token1, adminWallet, adminFee1); //tax for the token that enter the LP
+            _safeTransfer(_token0, to, amount0OutAfterFee); //paying the token that leave the LP.
         }
     }
 

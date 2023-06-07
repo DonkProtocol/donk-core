@@ -10,6 +10,7 @@ contract UniswapV2Factory is IUniswapV2Factory {
     address public override feeToSetter;
     uint256 public override adminFee;
     uint256 public override providerFee;
+    uint256 public override daysFee;
 
     bytes32 public constant INIT_CODE_HASH = keccak256(abi.encodePacked(type(UniswapV2Pair).creationCode));
 
@@ -19,10 +20,11 @@ contract UniswapV2Factory is IUniswapV2Factory {
     event PairCreated(address indexed token0, address indexed token1, address pair, uint);
 
     // 0.4% fee = 4  0.17% fee = 17 mutiply the wanted fee by 10
-    constructor(address _feeToSetter, uint256 _adminFee, uint256 _providerFee) public {
+    constructor(address _feeToSetter, uint256 _adminFee, uint256 _providerFee, uint256 _daysFee) public {
         feeToSetter = _feeToSetter;
         adminFee = _adminFee;
         providerFee = _providerFee;
+        daysFee = _daysFee;
     }
 
     function allPairsLength() external view override returns (uint) {

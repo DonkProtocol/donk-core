@@ -17,7 +17,7 @@ const overrides = {
 }
 
 export async function factoryFixture(_: Web3Provider, [wallet]: Wallet[]): Promise<FactoryFixture> {
-  const factory = await deployContract(wallet, UniswapV2Factory, [wallet.address, 17, 23], overrides) // 0.17%
+  const factory = await deployContract(wallet, UniswapV2Factory, [wallet.address, 17, 23, 5], overrides) // 0.17%
   return { factory }
 }
 
