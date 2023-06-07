@@ -356,11 +356,11 @@
 			]
 		},
 		"UniswapV2Pair.sol": {
-			"keccak256": "0xa977edad5d18c164b30f80ac43d45b9974285d17e2c000863e591cfb6edfe3e4",
+			"keccak256": "0x53ff93856c1fd1bb8745670dda20b7854b914c459079ef1e16cde30327436f4f",
 			"license": "GPL-3.0",
 			"urls": [
-				"bzz-raw://60c0f42d48dc4c1ff8e754f69a8e1902f1901d17d9499d5c06df8d48dfdc2de6",
-				"dweb:/ipfs/QmWCXQj3XqohMym8B8GuEghdmUgV7Uhq7cT5xHQn7RhgqL"
+				"bzz-raw://4b5976aa527d1bc08a08bd8b374097cf8b041354a253f92d47fe2f56a09c71ab",
+				"dweb:/ipfs/Qmc9w9LZsCXwKVN2ZZZxBRwvJgwnBBXLrSBHFEhyHC5xd2"
 			]
 		},
 		"interfaces/IERC20.sol": {
