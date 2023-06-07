@@ -151,7 +151,7 @@ contract UniswapV2Pair is UniswapV2ERC20 {
 
         bool feeOn = _mintFee(_reserve0, _reserve1);
 
-        (amount0, amount1) = getAmounts(liquidity, balance0, balance1);
+        (amount0, amount1) = getAmounts(liquidity, balance0, balance1, _reserve0, _reserve1);
 
         require(amount0 > 0 && amount1 > 0, 'UniswapV2: INSUFFICIENT_LIQUIDITY_BURNED');
         _burn(address(this), liquidity);
@@ -165,7 +165,13 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         emit Burn(msg.sender, amount0, amount1, to);
     }
 
-    function getAmounts(uint liquidity, uint balance0, uint balance1) private returns (uint amount0, uint amount1) {
+    function getAmounts(
+        uint liquidity,
+        uint balance0,
+        uint balance1,
+        uint112 _reserve0,
+        uint112 _reserve1
+    ) private returns (uint amount0, uint amount1) {
         uint _totalSupply = totalSupply; // gas savings, must be defined here since totalSupply can update in _mintFee
         uint amount00 = liquidity.mul(balance0) / _totalSupply; // using balances ensures pro-rata distribution
         uint amount11 = liquidity.mul(balance1) / _totalSupply; // using balances ensures pro-rata distribution
@@ -173,11 +179,9 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         address _token1 = token1; // gas savings
         address adminWallet = IUniswapV2Factory(factory).feeToSetter();
 
-        (uint112 _reserve0, uint112 _reserve1, ) = getReserves(); // gas savings
-
         //initial amounts
-        uint amount0Initial = balance0.sub(_reserve0);
-        uint amount1Initial = balance1.sub(_reserve1);
+        uint amount0Initial = balance0.subSafeMath(_reserve0);
+        uint amount1Initial = balance1.subSafeMath(_reserve1);
 
         //checking if the user has to pay the 7 days fee
         (uint fee0, uint fee1) = hasPassedSevenDays(msg.sender, amount0Initial, amount1Initial);
@@ -202,31 +206,31 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         uint amount1
     ) private view returns (uint fee0, uint fee1) {
         uint fees = IUniswapV2Factory(factory).daysFee();
+        require(fees <= 100, 'UniswapV2: INSUFFICIENT_FEES');
         uint256 currentTimestamp = block.timestamp;
         uint256 sevenDaysInSeconds = 7 days;
 
-        // Verificar se passaram 7 dias para o usuário atual
         if (currentTimestamp >= users[userAddress].timestampInitialize + sevenDaysInSeconds) {
-            fee0 = 0;
-            fee1 = 0;
-            return (fee0, fee1);
+            fee0 = (amount0 * fees) / 10000; //0.5%
+            fee1 = (amount1 * fees) / 10000; //0.5%
+            return (fee0.div(2), fee1.div(2)); //0.25%
         }
 
-        fee0 = (amount0 * fees) / 10000; //0.5%
-        fee1 = (amount1 * fees) / 10000; //0.5%
-        return (fee0.div(2), fee1.div(2)); //0.25%
+        fee0 = 0;
+        fee1 = 0;
+        return (fee0, fee1);
     }
 
     function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external lock {
         require(amount0Out > 0 || amount1Out > 0, 'UniswapV2: INSUFFICIENT_OUTPUT_AMOUNT');
-        (uint112 _reserve0, uint112 _reserve1, ) = getReserves(); // Economia de gás
+        (uint112 _reserve0, uint112 _reserve1, ) = getReserves(); // gas saving
         require(amount0Out < _reserve0 && amount1Out < _reserve1, 'UniswapV2: INSUFFICIENT_LIQUIDITY');
         uint balance0;
         uint balance1;
 
         (uint amount0OutAfterFee, uint amount1OutAfterFee) = calculateLiquidityFee(amount1Out, amount0Out, to);
         {
-            // Escopo para _token{0,1}, evita erros de "stack too deep"
+            // scope for _token{0,1}, avoids stack too deep errors
             address _token0 = token0;
             address _token1 = token1;
             require(to != _token0 && to != _token1, 'UniswapV2: INVALID_TO');
@@ -264,7 +268,7 @@ contract UniswapV2Pair is UniswapV2ERC20 {
     ) private returns (uint amount0OutAfterFee, uint amount1OutAfterFee) {
         address adminWallet = IUniswapV2Factory(factory).feeToSetter();
         uint fees = IUniswapV2Factory(factory).adminFee();
-        require(fees > 0, 'UniswapV2: INSUFFICIENT_FEE_AMOUNT');
+        require(fees <= 100, 'UniswapV2: INSUFFICIENT_FEE_AMOUNT');
 
         address _token0 = token0;
         address _token1 = token1;
@@ -277,12 +281,12 @@ contract UniswapV2Pair is UniswapV2ERC20 {
 
         if (amount0Out > 0) {
             _safeTransfer(_token0, adminWallet, adminFee0); //tax for the token that enter the LP.
-            _safeTransfer(_token1, to, amount1OutAfterFee); //paying the token that leave the LP.
+            _safeTransfer(_token1, to, amount0OutAfterFee); //paying the token that leave the LP.
         }
 
         if (amount1Out > 0) {
             _safeTransfer(_token1, adminWallet, adminFee1); //tax for the token that enter the LP
-            _safeTransfer(_token0, to, amount0OutAfterFee); //paying the token that leave the LP.
+            _safeTransfer(_token0, to, amount1OutAfterFee); //paying the token that leave the LP.
         }
     }
 
