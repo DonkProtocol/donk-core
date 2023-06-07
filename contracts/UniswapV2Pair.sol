@@ -207,14 +207,14 @@ contract UniswapV2Pair is UniswapV2ERC20 {
 
         // Verificar se passaram 7 dias para o usuário atual
         if (currentTimestamp >= users[userAddress].timestampInitialize + sevenDaysInSeconds) {
-            fee0 = (amount0 * fees) / 10000; //0.5%
-            fee1 = (amount1 * fees) / 10000; //0.5%
-            return (fee0.div(2), fee1.div(2)); //0.25%
+            fee0 = 0;
+            fee1 = 0;
+            return (fee0, fee1);
         }
 
-        fee0 = 0;
-        fee1 = 0;
-        return (fee0, fee1);
+        fee0 = (amount0 * fees) / 10000; //0.5%
+        fee1 = (amount1 * fees) / 10000; //0.5%
+        return (fee0.div(2), fee1.div(2)); //0.25%
     }
 
     function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external lock {

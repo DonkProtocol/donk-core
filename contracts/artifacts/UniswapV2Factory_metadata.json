@@ -21,6 +21,11 @@
 						"internalType": "uint256",
 						"name": "_providerFee",
 						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_daysFee",
+						"type": "uint256"
 					}
 				],
 				"stateMutability": "nonpayable",
@@ -137,6 +142,19 @@
 					}
 				],
 				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "daysFee",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
 				"type": "function"
 			},
 			{
@@ -330,19 +348,19 @@
 			]
 		},
 		"UniswapV2Factory.sol": {
-			"keccak256": "0xaa6bc287b749dbc304d00a3827753a9f0b3c7942e660e1ab3e3b83f77b87f694",
+			"keccak256": "0x7a23e544b7fea575c7983e7853eda002d95dc42ed2ecb44f5bf5c7646160e478",
 			"license": "GPL-3.0",
 			"urls": [
-				"bzz-raw://5bb431647b4c9255e937936f0849fdf9d15dfdc508b1c1ff50f431b7675e117a",
-				"dweb:/ipfs/QmVGjnfHhwytc76PKmqiFymZ657UM9xXNsYyAYdAa9qef8"
+				"bzz-raw://b3bca5121e8d276616d6bdff7a4ac755e4b93f48e505607a414762c7e4d44b2b",
+				"dweb:/ipfs/QmYYF6Frc44hRASWegpfBmz62JDHTB1JSGrmnUbRwYkZ5b"
 			]
 		},
 		"UniswapV2Pair.sol": {
-			"keccak256": "0xd83cb0668646ad32edeeb5a0d8b20428614e88e87a8a3153d7f6d5a99f2476c9",
+			"keccak256": "0xa977edad5d18c164b30f80ac43d45b9974285d17e2c000863e591cfb6edfe3e4",
 			"license": "GPL-3.0",
 			"urls": [
-				"bzz-raw://33525b657a101b15ad02ccd3f02a19397358e68de5c6b60218d151ab4ed0eea4",
-				"dweb:/ipfs/QmbQnzP3tzHtE1Ff4KBHRHdkMk6WsNKQcPUhB2ZUwjEhiF"
+				"bzz-raw://60c0f42d48dc4c1ff8e754f69a8e1902f1901d17d9499d5c06df8d48dfdc2de6",
+				"dweb:/ipfs/QmWCXQj3XqohMym8B8GuEghdmUgV7Uhq7cT5xHQn7RhgqL"
 			]
 		},
 		"interfaces/IERC20.sol": {
@@ -362,11 +380,11 @@
 			]
 		},
 		"interfaces/IUniswapV2Factory.sol": {
-			"keccak256": "0x7b5592db9b7a2bbd35367aa7ea5cd07fcd1b2962872687647a43f791534a04f0",
+			"keccak256": "0x7fa37c74aab205722f0e4b464cac092da49e24e839de1246fe68872f803b85d1",
 			"license": "GPL-3.0",
 			"urls": [
-				"bzz-raw://e6883544d58f5fcce6ff0085c80a9c1db7c30c515363629eee71edfcd713bf6d",
-				"dweb:/ipfs/QmbXM6MrM3sdtg4zRfQhH2HeqKDJePJfagrX7vfQpBFmns"
+				"bzz-raw://da191d60ad7148279b9139b5e5cf409de07a20892a9cb8ff721d3b729aa91c3f",
+				"dweb:/ipfs/QmQbjH5CcDs3fGaTPCV5dzaREgdVbhsYkruRtjuQGgGs9R"
 			]
 		},
 		"libraries/Math.sol": {
