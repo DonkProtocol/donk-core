@@ -78,7 +78,10 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         require(msg.sender == factory, 'UniswapV2: FORBIDDEN'); // sufficient check
         token0 = _token0;
         token1 = _token1;
-        users[msg.sender].timestampInitialize = block.timestamp;
+
+        if (users[msg.sender].timestampInitialize == 0) {
+            users[msg.sender].timestampInitialize = block.timestamp;
+        }
     }
 
     // update reserves and, on the first call per block, price accumulators
@@ -120,6 +123,9 @@ contract UniswapV2Pair is UniswapV2ERC20 {
 
     // this low-level function should be called from a contract which performs important safety checks
     function mint(address to) external lock returns (uint liquidity) {
+        if (users[to].timestampInitialize == 0) {
+            users[to].timestampInitialize = block.timestamp;
+        }
         (uint112 _reserve0, uint112 _reserve1, ) = getReserves(); // gas savings
         uint balance0 = IERC20Uniswap(token0).balanceOf(address(this));
         uint balance1 = IERC20Uniswap(token1).balanceOf(address(this));
@@ -215,16 +221,15 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         require(fees <= 100, 'UniswapV2: INSUFFICIENT_FEES');
         uint256 currentTimestamp = block.timestamp;
         uint256 sevenDaysInSeconds = 7 days;
+        uint256 fee = (fees * 10) / 2;
 
         if (currentTimestamp >= users[userAddress].timestampInitialize + sevenDaysInSeconds) {
-            fee0 = (amount0 * fees) / 10000; //0.5%
-            fee1 = (amount1 * fees) / 10000; //0.5%
-            return (fee0.div(2), fee1.div(2)); //0.25%
+            fee0 = (amount0 * fee) / 10000; //0.5%
+            fee1 = (amount1 * fee) / 10000; //0.5%
+        } else {
+            fee0 = 0;
+            fee1 = 0;
         }
-
-        fee0 = 0;
-        fee1 = 0;
-        return (fee0, fee1);
     }
 
     function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external lock {
