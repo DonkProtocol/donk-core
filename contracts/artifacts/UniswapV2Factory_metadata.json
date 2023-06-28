@@ -275,6 +275,19 @@
 			{
 				"inputs": [
 					{
+						"internalType": "uint256",
+						"name": "_daysFee",
+						"type": "uint256"
+					}
+				],
+				"name": "setDaysFee",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
 						"internalType": "address",
 						"name": "_feeTo",
 						"type": "address"
@@ -348,11 +361,11 @@
 			]
 		},
 		"UniswapV2Factory.sol": {
-			"keccak256": "0x7a23e544b7fea575c7983e7853eda002d95dc42ed2ecb44f5bf5c7646160e478",
+			"keccak256": "0xdacc5f50dd3f23ddcef48a4b5d97722cb51052e7ad21e3e62348d28274db82df",
 			"license": "GPL-3.0",
 			"urls": [
-				"bzz-raw://b3bca5121e8d276616d6bdff7a4ac755e4b93f48e505607a414762c7e4d44b2b",
-				"dweb:/ipfs/QmYYF6Frc44hRASWegpfBmz62JDHTB1JSGrmnUbRwYkZ5b"
+				"bzz-raw://b459b1c13e3db70b8fb552782f19409de8cdbf6aed2fa1c8b4b3eda3d2543b7c",
+				"dweb:/ipfs/QmWU8FVZmyp69yqYT6XgSWfjYVBM4yXT7ERfvqo76MQivX"
 			]
 		},
 		"UniswapV2Pair.sol": {

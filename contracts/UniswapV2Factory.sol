@@ -79,4 +79,9 @@ contract UniswapV2Factory is IUniswapV2Factory {
         require(msg.sender == feeToSetter, 'UniswapV2: FORBIDDEN');
         providerFee = _fee;
     }
+
+    function setDaysFee(uint256 _daysFee) external {
+        require(msg.sender == feeToSetter, 'UniswapV2: FORBIDDEN');
+        daysFee = _daysFee;
+    }
 }
