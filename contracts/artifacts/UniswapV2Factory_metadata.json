@@ -346,7 +346,7 @@
 			"bytecodeHash": "ipfs"
 		},
 		"optimizer": {
-			"enabled": false,
+			"enabled": true,
 			"runs": 200
 		},
 		"remappings": []
@@ -369,11 +369,11 @@
 			]
 		},
 		"UniswapV2Pair.sol": {
-			"keccak256": "0x7d8b279a174c3dc894b479bc8a92a5bbf6f3c84997737971aa03e3ee5923e011",
+			"keccak256": "0xfc6c14aee415ae6a3f442a7545d178479e9d60aa5e8aabf88f828450a2d871c6",
 			"license": "GPL-3.0",
 			"urls": [
-				"bzz-raw://d862689c9137f87e9c44795393f1f468d692b6f23071f32627b09d01e15abd43",
-				"dweb:/ipfs/QmSTex3w5H81fYdwqM4LWzX9RshcVMeQuKZuZgq6n33xQQ"
+				"bzz-raw://78ec5592972985353d1fa7d0578da3d1bb47bf9f3b17cd380ed3bae197af25bb",
+				"dweb:/ipfs/QmRwouNXo9xzpDNmL9RmnxcTzai6oRVNKZw63dru1dM6fF"
 			]
 		},
 		"interfaces/IERC20.sol": {
