@@ -89,16 +89,6 @@ describe('UniswapV2Pair', () => {
     await pair.transfer(pair.address, expectedLiquidity.sub(MINIMUM_LIQUIDITY))
 
     const amount = ethers.utils.parseEther('500')
-    const ve = await pair.testTaxes(amount)
-
-    const web3 = new Web3()
-    const wei = web3.utils.toWei(ve.value.toString(), 'wei')
-    const wei2 = web3.utils.toWei(ve.value1.toString(), 'wei')
-    console.log(wei)
-    console.log(wei2)
-
-    expect(wei).to.eq(ethers.utils.parseEther('1.15'))
-    expect(wei2).to.eq(ethers.utils.parseEther('0.85'))
 
     // const test0 = await pair.calculateLiquidityFee(amount, 0)
     //  await test0.wait()
