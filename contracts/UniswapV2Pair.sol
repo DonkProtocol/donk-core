@@ -247,15 +247,26 @@ contract UniswapV2Pair is UniswapV2ERC20 {
             require(to != _token0 && to != _token1, 'UniswapV2: INVALID_TO');
 
             if (data.length > 0) {
-                IUniswapV2Callee(to).uniswapV2Call(msg.sender, amount1OutAfterFee, amount0OutAfterFee, data);
+                IUniswapV2Callee(to).uniswapV2Call(msg.sender, amount0OutAfterFee, amount1OutAfterFee, data);
             }
 
             balance0 = IERC20Uniswap(_token0).balanceOf(address(this));
             balance1 = IERC20Uniswap(_token1).balanceOf(address(this));
         }
 
-        uint amount0In = balance0 > _reserve0 - amount0Out ? balance0 - (_reserve0 - amount0Out) : 0;
-        uint amount1In = balance1 > _reserve1 - amount1Out ? balance1 - (_reserve1 - amount1Out) : 0;
+        uint amount0In = balance0 > _reserve0 - amount0OutAfterFee ? balance0 - (_reserve0 - amount0OutAfterFee) : 0;
+        uint amount1In = balance1 > _reserve1 - amount1OutAfterFee ? balance1 - (_reserve1 - amount1OutAfterFee) : 0;
+        require(amount0In > 0 || amount1In > 0, 'UniswapV2: INSUFFICIENT_INPUT_AMOUNT');
+
+        {
+            // scope for reserve{0,1}Adjusted, avoids stack too deep errors
+            uint balance0Adjusted = balance0.mul(1000).sub(amount0In.mul(3));
+            uint balance1Adjusted = balance1.mul(1000).sub(amount1In.mul(3));
+            require(
+                balance0Adjusted.mul(balance1Adjusted) >= uint(_reserve0).mul(_reserve1).mul(1000 ** 2),
+                'UniswapV2: K'
+            );
+        }
 
         _update(balance0, balance1, _reserve0, _reserve1);
         emit Swap(msg.sender, amount0In, amount1In, amount0OutAfterFee, amount1OutAfterFee, to);
