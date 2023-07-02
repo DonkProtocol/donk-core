@@ -232,32 +232,28 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         }
     }
 
+    // this low-level function should be called from a contract which performs important safety checks
     function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external lock {
         require(amount0Out > 0 || amount1Out > 0, 'UniswapV2: INSUFFICIENT_OUTPUT_AMOUNT');
-        (uint112 _reserve0, uint112 _reserve1, ) = getReserves(); // gas saving
+        (uint112 _reserve0, uint112 _reserve1, ) = getReserves(); // gas savings
         require(amount0Out < _reserve0 && amount1Out < _reserve1, 'UniswapV2: INSUFFICIENT_LIQUIDITY');
+
         uint balance0;
         uint balance1;
-
-        address _token0 = token0;
-        address _token1 = token1;
-
-        (uint amount0OutAfterFee, uint amount1OutAfterFee) = calculateLiquidityFee(amount1Out, amount0Out, to);
         {
+            // scope for _token{0,1}, avoids stack too deep errors
+            address _token0 = token0;
+            address _token1 = token1;
             require(to != _token0 && to != _token1, 'UniswapV2: INVALID_TO');
-
-            if (data.length > 0) {
-                IUniswapV2Callee(to).uniswapV2Call(msg.sender, amount0Out, amount1Out, data);
-            }
-
-            balance0 = IERC20Uniswap(_token0).balanceOf(address(this)) - amount1OutAfterFee;
-            balance1 = IERC20Uniswap(_token1).balanceOf(address(this)) - amount0OutAfterFee;
+            if (amount0Out > 0) _safeTransfer(_token0, to, amount0Out); // optimistically transfer tokens
+            if (amount1Out > 0) _safeTransfer(_token1, to, amount1Out); // optimistically transfer tokens
+            if (data.length > 0) IUniswapV2Callee(to).uniswapV2Call(msg.sender, amount0Out, amount1Out, data);
+            balance0 = IERC20Uniswap(_token0).balanceOf(address(this));
+            balance1 = IERC20Uniswap(_token1).balanceOf(address(this));
         }
-
         uint amount0In = balance0 > _reserve0 - amount0Out ? balance0 - (_reserve0 - amount0Out) : 0;
         uint amount1In = balance1 > _reserve1 - amount1Out ? balance1 - (_reserve1 - amount1Out) : 0;
         require(amount0In > 0 || amount1In > 0, 'UniswapV2: INSUFFICIENT_INPUT_AMOUNT');
-
         {
             // scope for reserve{0,1}Adjusted, avoids stack too deep errors
             uint balance0Adjusted = balance0.mul(1000).sub(amount0In.mul(3));
@@ -269,36 +265,7 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         }
 
         _update(balance0, balance1, _reserve0, _reserve1);
-        emit Swap(msg.sender, amount0In, amount1In, amount1OutAfterFee, amount0OutAfterFee, to);
-    }
-
-    function calculateLiquidityFee(
-        uint amount0Out,
-        uint amount1Out,
-        address to
-    ) private returns (uint amount0OutAfterFee, uint amount1OutAfterFee) {
-        address adminWallet = IUniswapV2Factory(factory).feeToSetter();
-        uint fees = IUniswapV2Factory(factory).adminFee();
-        require(fees <= 100, 'UniswapV2: INSUFFICIENT_FEE_AMOUNT');
-
-        address _token0 = token0;
-        address _token1 = token1;
-
-        uint adminFee0 = (amount0Out * fees) / 10000; //0.12
-        amount0OutAfterFee = amount0Out - adminFee0;
-
-        uint adminFee1 = (amount1Out * fees) / 10000; //0.12
-        amount1OutAfterFee = amount1Out - adminFee1;
-
-        if (amount0Out > 0) {
-            _safeTransfer(_token0, adminWallet, adminFee0); //tax for the token that enter the LP. //dont change
-            _safeTransfer(_token1, to, amount0OutAfterFee); //paying the token that leave the LP.
-        }
-
-        if (amount1Out > 0) {
-            _safeTransfer(_token1, adminWallet, adminFee1); //tax for the token that enter the LP
-            _safeTransfer(_token0, to, amount1OutAfterFee); //paying the token that leave the LP.
-        }
+        emit Swap(msg.sender, amount0In, amount1In, amount0Out, amount1Out, to);
     }
 
     function testTaxes(uint amount0Out) public view returns (uint256 value, uint256 value1) {
